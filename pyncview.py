@@ -590,10 +590,7 @@ class NcFilePropertiesDialog(QtGui.QDialog):
         irow += 1
 
         # Show attributes
-        if hasattr(nc,'ncattrs'):
-            props = nc.ncattrs()
-        else:
-            props = [p for p in dir(nc) if p not in ('close','createDimension','createVariable','flush','sync')]
+        props = xmlplot.data.getNcAttributes(nc)
         if props:
             lab = QtGui.QLabel('Global NetCDF attributes:',self)
             layout.addWidget(lab,irow,0,1,3)
@@ -921,9 +918,11 @@ class VisualizeDialog(QtGui.QMainWindow):
         """Called when the user clicks "open" in the "File" menu.
         """
         filter = 'NetCDF files (*.nc);;All files (*.*)'
-        path = unicode(QtGui.QFileDialog.getOpenFileName(self,'',os.path.dirname(self.lastpath),filter))
-        if path=='': return
-        self.load(path)
+        paths = QtGui.QFileDialog.getOpenFileNames(self,'',os.path.dirname(self.lastpath),filter)
+        paths = map(unicode,paths)
+        if not paths: return
+        if len(paths)==1: paths = paths[0]
+        self.load(paths)
 
     def onAbout(self):
         """Called when the user clicks "About..." in the "Help" menu.
@@ -954,9 +953,12 @@ class VisualizeDialog(QtGui.QMainWindow):
         dialog = NcFilePropertiesDialog(store,parent=self)
         dialog.exec_()
         
-    def load(self,path):
+    def load(self,paths):
         """Loads a new NetCDF file.
         """
+        path = paths
+        if isinstance(paths,(list,tuple)): path = paths[0]
+        
         path = os.path.abspath(path)
     
         # First check if the file is already open.
@@ -973,7 +975,7 @@ class VisualizeDialog(QtGui.QMainWindow):
             curstorenames.append(unicode(curnode.data(0,QtCore.Qt.UserRole).toString()))
 
         # Try to load the NetCDF file.
-        store = xmlplot.data.NetCDFStore.loadUnknownConvention(path)
+        store = xmlplot.data.NetCDFStore.loadUnknownConvention(paths)
         
         # Create a name for the data store based on the file name,
         # but make sure it is unique.
