@@ -16,7 +16,8 @@ directory that in turn contains the gui.py directory. Alternatively, the
 environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
 (normally gui.py).""")
 parser.add_option('-q', '--quiet', action='store_true', help='suppress output of progress messages')
-parser.set_defaults(quiet=False)
+parser.add_option('--nc', type='string', help='NetCDF module to use')
+parser.set_defaults(quiet=False,nc=None)
 options,args = parser.parse_args()
 
 # One or more nc files to open may be specified on the command line.
@@ -59,6 +60,14 @@ try:
 except ImportError,e:
     print 'Unable to import GOTM-GUI libraries from "%s": %s. Please ensure that environment variable GOTMDIR or GOTMGUIDIR is set to the correct path.' % (gotmguiroot,e)
     sys.exit(1)
+    
+if options.nc is not None:
+    if xmlplot.data.selectednetcdfmodule is None: xmlplot.data.chooseNetCDFModule()
+    for xmlplot.data.selectednetcdfmodule,(m,v) in enumerate(xmlplot.data.netcdfmodules):
+        if m==options.nc: break
+    else:
+        print 'Forced NetCDF module "%s" is not available.' % options.nc
+        sys.exit(2)
 
 # -------------------------------------------------------------------
 # Actual code.
@@ -157,22 +166,26 @@ class AboutDialog(QtGui.QDialog):
             import mpl_toolkits.basemap
             versions.append(('basemap',mpl_toolkits.basemap.__version__))
         except: pass
-        try:
-            import Scientific
-            versions.append(('Scientific',Scientific.__version__))
-        except: pass
-        try:
-            import netCDF4
-            versions.append(('netCDF4',netCDF4.__version__))
-        except: pass
         
         strversions = ''
         if not hasattr(sys,'frozen'): strversions += 'GOTM-GUI libraries: %s<br><br>' % relguipath
+
+        # Build table with module versions.
         strversions += 'Module versions:'
         strversions += '<table cellspacing="0" cellpadding="0">'
         for v in versions:
             strversions += '<tr><td>%s</td><td>&nbsp;</td><td>%s</td></tr>' % v
         strversions += '</table>'
+
+        # Enumerate available NetCDF modules.
+        if xmlplot.data.selectednetcdfmodule is None: xmlplot.data.chooseNetCDFModule()
+        strversions += '<br><br>NetCDF modules:<table cellspacing="0" cellpadding="0">'
+        for i,(m,v) in enumerate(xmlplot.data.netcdfmodules):
+            act = '&nbsp;'
+            if i==xmlplot.data.selectednetcdfmodule: act = '(active)'
+            strversions += '<tr><td>%s</td><td>&nbsp;</td><td>%s</td><td>&nbsp;</td><td>%s</td></tr>' % (m,v,act)
+        strversions += '</table>'
+
         self.labelVersions = QtGui.QLabel('Diagnostics:',self)
         self.textVersions = QtGui.QTextEdit(strversions,self)
         self.textVersions.setMaximumHeight(120)
@@ -1311,7 +1324,12 @@ class VisualizeDialog(QtGui.QMainWindow):
             minmaxdims = list(slabdims) + [plottedvarname]
             
             oldupdating = self.figurepanel.figure.setUpdating(False)
+            ismap = self.figurepanel.figure['Map'].getValue(usedefault=True)
             for axisnode in self.figurepanel.figure['Axes'].children:
+                # If we are dealing with a map, the x and y coordinates will change according to the selected
+                # projection. Therefore, the x and y bounds in the data are useless - skip these axes.
+                if axisnode.getSecondaryId() in 'xy' and ismap: continue
+                
                 vamin,vamax = None,None
                 axisdims = axisnode['Dimensions'].getValue(usedefault=True)
                 for axisdim in axisdims.split(';'):
