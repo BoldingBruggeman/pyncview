@@ -41,7 +41,7 @@ def main():
     directory that in turn contains the gui.py directory. Alternatively, the
     environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
     (normally gui.py).""")
-    parser.set_defaults(dpi=96,quiet=False,sources={},animate=None,output=None,expressions=[],lastsource=None,id=None)
+    parser.set_defaults(dpi=96,quiet=False,sources={},animate=None,output=None,expressions=[],lastsource=None,id=())
     parser.add_option('-s','--source',         type='string',action='callback',callback=newsource,            metavar='[SOURCENAME=]NCPATH', help='Specifies a NetCDF file from which to plot data. SOURCENAME: name of the data source that may be used in expressions (if omitted the default "source#" is used), NCPATH: path to the NetCDF file.')
     parser.add_option('-e','--expression',     type='string',action='callback',callback=newexpression,        metavar='EXPRESSION', help='Data series to plot. This can be the name of a NetCDF variable, or mathematical expression that can contain variables from NetCDF files, as well as several standard functions (e.g., sum, mean, min, max) and named constants (e.g., pi).')
     parser.add_option('-E','--namedexpression',type='string',action='callback',callback=newexpression,nargs=2,metavar='SERIESNAME EXPRESSION', help='Data series to plot. SERIESNAME: name for the data series (currently used in the default plot title and legend), EXPRESSION: variable name or mathematical expression that can contain variables from NetCDF files, as well as several standard functions (e.g., sum, mean, min, max) and named constants (e.g., pi).')
@@ -50,7 +50,7 @@ def main():
     parser.add_option('-a','--animate',type='string',metavar='DIMENSION', help='Create an animation by varying the index of this dimension. Stills for each index will be exported to the output path, which should be an existing directory or a Python formatting template for file names accepting an integer (e.g. "./movie/still%05i.png"). If this switch is provided without the -o/--output option, only the first frame of the animation will be shown on screen.')
     parser.add_option('-o','--output', type='string',metavar='PATH', help='Output path. This should be the name of the file to be created, unless --animate/-a is specified - in that case it can either be an existing directory or a formatting template for file names (see -a/--animate option). If this argument is ommitted, a dialog displaying the plot will be shown on-screen.')
     parser.add_option('-d','--dpi',    type='int', help='Resolution of exported figure in dots per inch (integer). The default resolution is 96 dpi. Only used in combination with -o/--output.')
-    parser.add_option('-i','--id',     type='string', help='Plot identifier to be shown in corner of the figure.')
+    parser.add_option('-i','--id',     type='string', action='append',help='Plot identifier to be shown in corner of the figure.')
 
     # Add old deprecated options (hidden in help text)
     parser.add_option('-f','--font',     type='string',help=optparse.SUPPRESS_HELP)
@@ -158,6 +158,8 @@ class Plotter(object):
         self.dpi = dpi
         self.id = id
         self.verbose = verbose
+        
+        if isinstance(self.id,basestring): self.id = (self.id,)
 
         importModules(verbose)
         
@@ -217,13 +219,13 @@ class Plotter(object):
                 if child.getSecondaryId()=='': unlinkedseries.append(child)
 
         # Add figure identifier to plot
-        if self.id is not None:
+        for id in self.id:
             textnode = fig['FigureTexts'].addChild('Text')
             textnode['X'].setValue(.99)
             textnode['Y'].setValue(.01)
             textnode['HorizontalAlignment'].setValue('right')
             textnode['VerticalAlignment'].setValue('bottom')
-            textnode.setValue(self.id)
+            textnode.setValue(id)
 
         # Enumerate over expressions, and add series to the plot.
         for label,sourcename,expression in self.expressions:
