@@ -41,7 +41,7 @@ def main():
     directory that in turn contains the gui.py directory. Alternatively, the
     environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
     (normally gui.py).""")
-    parser.set_defaults(dpi=96,quiet=False,sources={},animate=None,output=None,expressions=[],lastsource=None,id=())
+    parser.set_defaults(dpi=96,quiet=False,sources={},animate=None,output=None,expressions=[],lastsource=None,id=[])
     parser.add_option('-s','--source',         type='string',action='callback',callback=newsource,            metavar='[SOURCENAME=]NCPATH', help='Specifies a NetCDF file from which to plot data. SOURCENAME: name of the data source that may be used in expressions (if omitted the default "source#" is used), NCPATH: path to the NetCDF file.')
     parser.add_option('-e','--expression',     type='string',action='callback',callback=newexpression,        metavar='EXPRESSION', help='Data series to plot. This can be the name of a NetCDF variable, or mathematical expression that can contain variables from NetCDF files, as well as several standard functions (e.g., sum, mean, min, max) and named constants (e.g., pi).')
     parser.add_option('-E','--namedexpression',type='string',action='callback',callback=newexpression,nargs=2,metavar='SERIESNAME EXPRESSION', help='Data series to plot. SERIESNAME: name for the data series (currently used in the default plot title and legend), EXPRESSION: variable name or mathematical expression that can contain variables from NetCDF files, as well as several standard functions (e.g., sum, mean, min, max) and named constants (e.g., pi).')
@@ -113,7 +113,7 @@ def importModules(verbose=True):
     # Configure MatPlotLib backend and numerical library.
     # (should be done before any modules that use MatPlotLib are loaded)
     import matplotlib
-    matplotlib.rcParams['numerix'] = 'numpy'
+    #matplotlib.rcParams['numerix'] = 'numpy'
     matplotlib.use('Qt4Agg')
 
     # Get GOTM-GUI directory from environment.
@@ -143,7 +143,7 @@ def importModules(verbose=True):
     sys.path = path
 
 class Plotter(object):
-    def __init__(self,sources=None,expressions=None,assignments=None,output=None,verbose=True,figurexml=None,dpi=None,animate=None,id=None):
+    def __init__(self,sources=None,expressions=None,assignments=None,output=None,verbose=True,figurexml=None,dpi=None,animate=None,id=[]):
         if sources     is None: sources = {}
         if expressions is None: expressions = []
         if assignments is None: assignments = {}
