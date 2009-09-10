@@ -26,7 +26,7 @@ inputpaths = list(args)
 # Configure MatPlotLib backend and numerical library.
 # (should be done before any modules that use MatPlotLib are loaded)
 import matplotlib
-matplotlib.rcParams['numerix'] = 'numpy'
+#matplotlib.rcParams['numerix'] = 'numpy'
 matplotlib.use('Qt4Agg')
 
 import numpy
