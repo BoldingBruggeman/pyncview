@@ -249,7 +249,7 @@ class Plotter(object):
             if node is None:
                 raise Exception('"%s" was not found in plot properties.' % name)
             fullname = '/'.join(node.location)
-            if val[0] in '\'"' and val[0]==val[-1]: val = val[1:-1]
+            if len(val)>1 and val[0] in '\'"' and val[0]==val[-1]: val = val[1:-1]
             tp = node.getValueType(returnclass=True)
             try:
                 val = tp.fromXmlString(val,{},node.templatenode)
