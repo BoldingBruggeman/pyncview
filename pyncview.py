@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 # $LastChangedRevision$
+# $LastChangedDate$
 
 # -------------------------------------------------------------------
 # Module import and configuration, plus command line parsing.
@@ -16,7 +17,11 @@ This script uses the GOTM-GUI libraries extensively. To find these libraries,
 either the environment variable GOTMDIR must be set, pointing to a
 directory that in turn contains the gui.py directory. Alternatively, the
 environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
-(normally gui.py).""")
+(normally gui.py).
+
+$LastChangedRevision$
+$LastChangedDate$
+""")
 parser.add_option('-q', '--quiet', action='store_true', help='suppress output of progress messages')
 parser.add_option('--nc', type='string', help='NetCDF module to use')
 parser.set_defaults(quiet=False,nc=None)
