@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+# $LastChangedRevision$
+
 # -------------------------------------------------------------------
 # Module import and configuration, plus command line parsing.
 # -------------------------------------------------------------------
