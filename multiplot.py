@@ -41,7 +41,7 @@ def main():
     directory that in turn contains the gui.py directory. Alternatively, the
     environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
     (normally gui.py).""")
-    parser.set_defaults(dpi=96,quiet=False,sources={},animate=None,output=None,expressions=[],lastsource=None,id=[])
+    parser.set_defaults(dpi=96,quiet=False,sources={},animate=None,output=None,expressions=[],lastsource=None,id=[],debug=False)
     parser.add_option('-s','--source',         type='string',action='callback',callback=newsource,            metavar='[SOURCENAME=]NCPATH', help='Specifies a NetCDF file from which to plot data. SOURCENAME: name of the data source that may be used in expressions (if omitted the default "source#" is used), NCPATH: path to the NetCDF file.')
     parser.add_option('-e','--expression',     type='string',action='callback',callback=newexpression,        metavar='EXPRESSION', help='Data series to plot. This can be the name of a NetCDF variable, or mathematical expression that can contain variables from NetCDF files, as well as several standard functions (e.g., sum, mean, min, max) and named constants (e.g., pi).')
     parser.add_option('-E','--namedexpression',type='string',action='callback',callback=newexpression,nargs=2,metavar='SERIESNAME EXPRESSION', help='Data series to plot. SERIESNAME: name for the data series (currently used in the default plot title and legend), EXPRESSION: variable name or mathematical expression that can contain variables from NetCDF files, as well as several standard functions (e.g., sum, mean, min, max) and named constants (e.g., pi).')
@@ -51,6 +51,7 @@ def main():
     parser.add_option('-o','--output', type='string',metavar='PATH', help='Output path. This should be the name of the file to be created, unless --animate/-a is specified - in that case it can either be an existing directory or a formatting template for file names (see -a/--animate option). If this argument is ommitted, a dialog displaying the plot will be shown on-screen.')
     parser.add_option('-d','--dpi',    type='int', help='Resolution of exported figure in dots per inch (integer). The default resolution is 96 dpi. Only used in combination with -o/--output.')
     parser.add_option('-i','--id',     type='string', action='append',help='Plot identifier to be shown in corner of the figure.')
+    parser.add_option('--debug',       action='store_true', help='Activate debugging (more elaborate error messages).')
 
     # Add old deprecated options (hidden in help text)
     parser.add_option('-f','--font',     type='string',help=optparse.SUPPRESS_HELP)
@@ -88,14 +89,17 @@ def main():
                 
     # Create plotter object
     plt = Plotter(options.sources,options.expressions,assignments=assignments,verbose=not options.quiet,output=options.output,
-                  figurexml=options.figurexml,animate=options.animate,dpi=options.dpi,id=options.id)
+                  figurexml=options.figurexml,animate=options.animate,dpi=options.dpi,id=options.id,debug=options.debug)
                   
     # Plot
-    try:
+    if options.debug:
         plt.plot()
-    except Exception,e:
-        print e
-        return 1
+    else:
+        try:
+            plt.plot()
+        except Exception,e:
+            print e
+            return 1
         
     # Return success
     return 0
@@ -143,7 +147,7 @@ def importModules(verbose=True):
     sys.path = path
 
 class Plotter(object):
-    def __init__(self,sources=None,expressions=None,assignments=None,output=None,verbose=True,figurexml=None,dpi=None,animate=None,id=[]):
+    def __init__(self,sources=None,expressions=None,assignments=None,output=None,verbose=True,figurexml=None,dpi=None,animate=None,id=[],debug=False):
         if sources     is None: sources = {}
         if expressions is None: expressions = []
         if assignments is None: assignments = {}
@@ -158,6 +162,7 @@ class Plotter(object):
         self.dpi = dpi
         self.id = id
         self.verbose = verbose
+        self.debug = debug
         
         if isinstance(self.id,basestring): self.id = (self.id,)
 
@@ -229,12 +234,15 @@ class Plotter(object):
 
         # Enumerate over expressions, and add series to the plot.
         for label,sourcename,expression in self.expressions:
-            try:
+            if self.debug:
                 series = fig.addVariable(expression,sourcename)
-            except Exception,e:
-                for name,source in sources.itervalues():
-                    if name==sourcename: break
-                raise Exception('%s\nVariables present in NetCDF file: %s.' % (str(e),', '.join(source.getVariableNames())))
+            else:
+                try:
+                    series = fig.addVariable(expression,sourcename)
+                except Exception,e:
+                    for name,source in sources.itervalues():
+                        if name==sourcename: break
+                    raise Exception('%s\nVariables present in NetCDF file: %s.' % (str(e),', '.join(source.getVariableNames())))
             if unlinkedseries:
                 # If we have data series properties in the figure settings for a data series without name,
                 # then use those for this new series.
