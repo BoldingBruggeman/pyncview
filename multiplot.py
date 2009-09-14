@@ -40,7 +40,7 @@ def main():
     either the environment variable GOTMDIR must be set, pointing to a
     directory that in turn contains the gui.py directory. Alternatively, the
     environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
-    (normally gui.py).""")
+    (normally gui.py).""",version=r'$LastChangedRevision$'+'\n'+r'$LastChangedDate$')
     parser.set_defaults(dpi=96,quiet=False,sources={},animate=None,output=None,expressions=[],lastsource=None,id=[],debug=False)
     parser.add_option('-s','--source',         type='string',action='callback',callback=newsource,            metavar='[SOURCENAME=]NCPATH', help='Specifies a NetCDF file from which to plot data. SOURCENAME: name of the data source that may be used in expressions (if omitted the default "source#" is used), NCPATH: path to the NetCDF file.')
     parser.add_option('-e','--expression',     type='string',action='callback',callback=newexpression,        metavar='EXPRESSION', help='Data series to plot. This can be the name of a NetCDF variable, or mathematical expression that can contain variables from NetCDF files, as well as several standard functions (e.g., sum, mean, min, max) and named constants (e.g., pi).')
