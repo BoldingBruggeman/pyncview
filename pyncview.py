@@ -67,7 +67,7 @@ if options.nc is not None:
     for xmlplot.data.selectednetcdfmodule,(m,v) in enumerate(xmlplot.data.netcdfmodules):
         if m==options.nc: break
     else:
-        print 'Forced NetCDF module "%s" is not available.' % options.nc
+        print 'Forced NetCDF module "%s" is not available. Available modules: %s.' % (options.nc,', '.join([m[0] for m in xmlplot.data.netcdfmodules]))
         sys.exit(2)
 
 # -------------------------------------------------------------------
@@ -1157,8 +1157,11 @@ class VisualizeDialog(QtGui.QMainWindow):
                 scalarvar = self.store.getExpression(self.addSliceSpec(varname,var))
                 varslice = scalarvar.getSlice(())
                 if not isinstance(varslice,(list,tuple)): varslice = (varslice,)
-                strvalue = ', '.join([str(s.data) for s in varslice])
-                self.labelMissing.setText('This variable is a scalar with value %s. It cannot be shown: only variables with 1 or 2 dimensions can be plotted.' % (strvalue,))
+                dat = []
+                for s in varslice:
+                    if isinstance(s,xmlplot.common.Variable.Slice): s = s.data
+                    dat.append(str(s))
+                self.labelMissing.setText('This variable is a scalar with value %s. It cannot be shown: only variables with 1 or 2 dimensions can be plotted.' % (', '.join(dat),))
             showslicer = ndim>2 or nsliced>0
             self.dockSlice.setVisible(showslicer)
             self.actSliceWindow.setChecked(showslicer)
