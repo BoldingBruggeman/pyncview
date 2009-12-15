@@ -989,7 +989,11 @@ class VisualizeDialog(QtGui.QMainWindow):
             curstorenames.append(unicode(curnode.data(0,QtCore.Qt.UserRole).toString()))
 
         # Try to load the NetCDF file.
-        store = xmlplot.data.NetCDFStore.loadUnknownConvention(paths)
+        try:
+            store = xmlplot.data.NetCDFStore.loadUnknownConvention(paths)
+        except xmlplot.data.NetCDFError,e:
+            QtGui.QMessageBox.critical(self,'Error opening NetCDF file',unicode(e))
+            return
         
         # Create a name for the data store based on the file name,
         # but make sure it is unique.
