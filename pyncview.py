@@ -15,7 +15,7 @@ either the environment variable GOTMDIR must be set, pointing to a
 directory that in turn contains the gui.py directory. Alternatively, the
 environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
 (normally gui.py).
-""",version=r'$LastChangedRevision$'+'\n'+r'$LastChangedDate$')
+""",version=r'$LastChangedRevision: 15 $'+'\n'+r'$LastChangedDate: 2009-12-15 12:13:17 +0000 (di, 15 dec 2009) $')
 parser.add_option('-q', '--quiet', action='store_true', help='suppress output of progress messages')
 parser.add_option('--nc', type='string', help='NetCDF module to use')
 parser.set_defaults(quiet=False,nc=None)
@@ -825,11 +825,13 @@ class VisualizeDialog(QtGui.QMainWindow):
         self.connect(self.bnAddExpression, QtCore.SIGNAL('clicked()'), self.editExpression)
 
         self.figurepanel = xmlplot.gui_qt4.FigurePanel(central)
+        self.figurepanel.setMinimumSize(500,350)
         self.figurepanel.figure.autosqueeze = False
         self.store = self.figurepanel.figure.source
         
         self.labelMissing = QtGui.QLabel('',central)
         self.labelMissing.setWordWrap(True)
+        self.labelMissing.setVisible(False)
 
         #self.label = QtGui.QLabel('Here you can view the results of the simulation. Please choose a variable to be plotted from the menu.',self)
         
