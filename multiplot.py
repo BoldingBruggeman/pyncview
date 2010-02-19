@@ -41,7 +41,6 @@ def main():
     directory that in turn contains the gui.py directory. Alternatively, the
     environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
     (normally gui.py).""",version=r'$LastChangedRevision$'+'\n'+r'$LastChangedDate$')
-    parser.set_defaults(dpi=96,quiet=False,sources={},animate=None,output=None,expressions=[],lastsource=None,id=[],debug=False)
     parser.add_option('-s','--source',         type='string',action='callback',callback=newsource,            metavar='[SOURCENAME=]NCPATH', help='Specifies a NetCDF file from which to plot data. SOURCENAME: name of the data source that may be used in expressions (if omitted the default "source#" is used), NCPATH: path to the NetCDF file.')
     parser.add_option('-e','--expression',     type='string',action='callback',callback=newexpression,        metavar='EXPRESSION', help='Data series to plot. This can be the name of a NetCDF variable, or mathematical expression that can contain variables from NetCDF files, as well as several standard functions (e.g., sum, mean, min, max) and named constants (e.g., pi).')
     parser.add_option('-E','--namedexpression',type='string',action='callback',callback=newexpression,nargs=2,metavar='SERIESNAME EXPRESSION', help='Data series to plot. SERIESNAME: name for the data series (currently used in the default plot title and legend), EXPRESSION: variable name or mathematical expression that can contain variables from NetCDF files, as well as several standard functions (e.g., sum, mean, min, max) and named constants (e.g., pi).')
@@ -52,6 +51,8 @@ def main():
     parser.add_option('-d','--dpi',    type='int', help='Resolution of exported figure in dots per inch (integer). The default resolution is 96 dpi. Only used in combination with -o/--output.')
     parser.add_option('-i','--id',     type='string', action='append',help='Plot identifier to be shown in corner of the figure.')
     parser.add_option('--debug',       action='store_true', help='Activate debugging (more elaborate error messages).')
+    parser.add_option('--nc', type='string', help='NetCDF module to use')
+    parser.set_defaults(dpi=96,quiet=False,sources={},animate=None,output=None,expressions=[],lastsource=None,id=[],debug=False,nc=None)
 
     # Add old deprecated options (hidden in help text)
     parser.add_option('-f','--font',     type='string',help=optparse.SUPPRESS_HELP)
@@ -89,7 +90,8 @@ def main():
                 
     # Create plotter object
     plt = Plotter(options.sources,options.expressions,assignments=assignments,verbose=not options.quiet,output=options.output,
-                  figurexml=options.figurexml,animate=options.animate,dpi=options.dpi,id=options.id,debug=options.debug)
+                  figurexml=options.figurexml,animate=options.animate,dpi=options.dpi,id=options.id,debug=options.debug,
+                  nc=options.nc)
                   
     # Plot
     if options.debug:
@@ -147,7 +149,7 @@ def importModules(verbose=True):
     sys.path = path
 
 class Plotter(object):
-    def __init__(self,sources=None,expressions=None,assignments=None,output=None,verbose=True,figurexml=None,dpi=None,animate=None,id=[],debug=False):
+    def __init__(self,sources=None,expressions=None,assignments=None,output=None,verbose=True,figurexml=None,dpi=None,animate=None,id=[],debug=False,nc=None):
         if sources     is None: sources = {}
         if expressions is None: expressions = []
         if assignments is None: assignments = {}
@@ -167,6 +169,13 @@ class Plotter(object):
         if isinstance(self.id,basestring): self.id = (self.id,)
 
         importModules(verbose)
+
+        if nc is not None:
+            if xmlplot.data.selectednetcdfmodule is None: xmlplot.data.chooseNetCDFModule()
+            for xmlplot.data.selectednetcdfmodule,(m,v) in enumerate(xmlplot.data.netcdfmodules):
+                if m==nc: break
+            else:
+                raise Exception('Forced NetCDF module "%s" is not available. Available modules: %s.' % (nc,', '.join([m[0] for m in xmlplot.data.netcdfmodules])))
         
     def addExpression(self,expression,defaultsource=None,label=None):
         if defaultsource is None:
