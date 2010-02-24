@@ -15,7 +15,7 @@ either the environment variable GOTMDIR must be set, pointing to a
 directory that in turn contains the gui.py directory. Alternatively, the
 environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
 (normally gui.py).
-""",version=r'$LastChangedRevision: 15 $'+'\n'+r'$LastChangedDate: 2009-12-15 12:13:17 +0000 (di, 15 dec 2009) $')
+""",version=r'$LastChangedRevision$'+'\n'+r'$LastChangedDate$')
 parser.add_option('-q', '--quiet', action='store_true', help='suppress output of progress messages')
 parser.add_option('--nc', type='string', help='NetCDF module to use')
 parser.set_defaults(quiet=False,nc=None)
@@ -742,7 +742,10 @@ class ReassignDialog(QtGui.QDialog):
         bnLayout.addStretch(1)
         
         bnReset = QtGui.QPushButton('Reset',self)
-        self.connect(bnReset, QtCore.SIGNAL('clicked()'), self.reset)
+        self.menuReset = QtGui.QMenu(self)
+        self.actResetToDefault = self.menuReset.addAction('Restore default reassignments',self.onResetToDefault)
+        self.actResetRemoveAll = self.menuReset.addAction('Undo all reassignments',self.onResetRemoveAll)
+        bnReset.setMenu(self.menuReset)
         bnLayout.addWidget(bnReset)
         
         bnOk = QtGui.QPushButton('OK',self)
@@ -752,7 +755,7 @@ class ReassignDialog(QtGui.QDialog):
         bnCancel = QtGui.QPushButton('Cancel',self)
         self.connect(bnCancel, QtCore.SIGNAL('clicked()'), self.reject)
         bnLayout.addWidget(bnCancel)
-        
+
         layout.addLayout(bnLayout,irow+1,0,1,3)
         
         # Set stretching row and column
@@ -788,8 +791,12 @@ class ReassignDialog(QtGui.QDialog):
                 self.store.reassigneddims[dim] = var
         return QtGui.QDialog.accept(self)
         
-    def reset(self):
+    def onResetToDefault(self):
         self.store.autoReassignCoordinates()
+        self.selectComboValues()
+
+    def onResetRemoveAll(self):
+        self.store.reassigneddims = {}
         self.selectComboValues()
                                 
 class VisualizeDialog(QtGui.QMainWindow):
