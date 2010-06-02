@@ -88,7 +88,7 @@ def main():
     if options.reassign is not None:
         for assign in options.reassign.split(','):
             if '=' not in assign:
-                print 'Error: "%s" does not contain = and therefore cannot be a dimension re-assignment. Dimension reassignments must be specified as OLDDIMENSIONNAME=NEWDIMENSIONNAME.' % assign
+                print 'Error: "%s" does not contain = and therefore cannot be a dimension reassignment. Dimension reassignments must be specified as OLDDIMENSIONNAME=NEWDIMENSIONNAME.' % assign
                 return 2
             old,new = assign.split('=')
             dimassignments[old] = new
