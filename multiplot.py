@@ -44,15 +44,16 @@ def main():
     parser.add_option('-s','--source',         type='string',action='callback',callback=newsource,            metavar='[SOURCENAME=]NCPATH', help='Specifies a NetCDF file from which to plot data. SOURCENAME: name of the data source that may be used in expressions (if omitted the default "source#" is used), NCPATH: path to the NetCDF file.')
     parser.add_option('-e','--expression',     type='string',action='callback',callback=newexpression,        metavar='EXPRESSION', help='Data series to plot. This can be the name of a NetCDF variable, or mathematical expression that can contain variables from NetCDF files, as well as several standard functions (e.g., sum, mean, min, max) and named constants (e.g., pi).')
     parser.add_option('-E','--namedexpression',type='string',action='callback',callback=newexpression,nargs=2,metavar='SERIESNAME EXPRESSION', help='Data series to plot. SERIESNAME: name for the data series (currently used in the default plot title and legend), EXPRESSION: variable name or mathematical expression that can contain variables from NetCDF files, as well as several standard functions (e.g., sum, mean, min, max) and named constants (e.g., pi).')
-    parser.add_option('-x','--figurexml',type='string',metavar='PATH',help='Path to XML file with figure settings. Typically this file is created by first running multiplot.py without the -o/--output option, changing figure settings through the graphical user interface, and then saving these to file.')
-    parser.add_option('-q','--quiet', action='store_true', help='suppress output of progress messages')
+    parser.add_option('-x','--figurexml',      type='string',metavar='PATH',help='Path to XML file with figure settings. Typically this file is created by first running multiplot.py without the -o/--output option, changing figure settings through the graphical user interface, and then saving these to file.')
+    parser.add_option('-q','--quiet',  action='store_true', help='suppress output of progress messages')
     parser.add_option('-a','--animate',type='string',metavar='DIMENSION', help='Create an animation by varying the index of this dimension. Stills for each index will be exported to the output path, which should be an existing directory or a Python formatting template for file names accepting an integer (e.g. "./movie/still%05i.png"). If this switch is provided without the -o/--output option, only the first frame of the animation will be shown on screen.')
     parser.add_option('-o','--output', type='string',metavar='PATH', help='Output path. This should be the name of the file to be created, unless --animate/-a is specified - in that case it can either be an existing directory or a formatting template for file names (see -a/--animate option). If this argument is ommitted, a dialog displaying the plot will be shown on-screen.')
+    parser.add_option(     '--reassign', type='string',help='Dimension reassignments. This should be a comma-separated list of olddimension=newdimension pairs.')
     parser.add_option('-d','--dpi',    type='int', help='Resolution of exported figure in dots per inch (integer). The default resolution is 96 dpi. Only used in combination with -o/--output.')
     parser.add_option('-i','--id',     type='string', action='append',help='Plot identifier to be shown in corner of the figure.')
     parser.add_option('--debug',       action='store_true', help='Activate debugging (more elaborate error messages).')
     parser.add_option('--nc', type='string', help='NetCDF module to use')
-    parser.set_defaults(dpi=96,quiet=False,sources={},animate=None,output=None,expressions=[],lastsource=None,id=[],debug=False,nc=None)
+    parser.set_defaults(dpi=96,quiet=False,sources={},animate=None,output=None,expressions=[],lastsource=None,id=[],debug=False,nc=None,reassign=None)
 
     # Add old deprecated options (hidden in help text)
     parser.add_option('-f','--font',     type='string',help=optparse.SUPPRESS_HELP)
@@ -81,6 +82,16 @@ def main():
             return 2
         name,val = arg.split('=',1)
         assignments[name] = val
+        
+    # Parse dimension reassignments (if any)
+    dimassignments = {}
+    if options.reassign is not None:
+        for assign in options.reassign.split(','):
+            if '=' not in assign:
+                print 'Error: "%s" does not contain = and therefore cannot be a dimension re-assignment. Dimension reassignments must be specified as OLDDIMENSIONNAME=NEWDIMENSIONNAME.' % assign
+                return 2
+            old,new = assign.split('=')
+            dimassignments[old] = new
     
     # Translate deprecated options into plot property assignments.
     if options.title  is not None: assignments['/Title'      ]=options.title
@@ -91,7 +102,7 @@ def main():
     # Create plotter object
     plt = Plotter(options.sources,options.expressions,assignments=assignments,verbose=not options.quiet,output=options.output,
                   figurexml=options.figurexml,animate=options.animate,dpi=options.dpi,id=options.id,debug=options.debug,
-                  nc=options.nc)
+                  nc=options.nc,reassign=dimassignments)
                   
     # Plot
     if options.debug:
@@ -149,7 +160,7 @@ def importModules(verbose=True):
     sys.path = path
 
 class Plotter(object):
-    def __init__(self,sources=None,expressions=None,assignments=None,output=None,verbose=True,figurexml=None,dpi=None,animate=None,id=[],debug=False,nc=None):
+    def __init__(self,sources=None,expressions=None,assignments=None,output=None,verbose=True,figurexml=None,dpi=None,animate=None,id=[],debug=False,nc=None,reassign={}):
         if sources     is None: sources = {}
         if expressions is None: expressions = []
         if assignments is None: assignments = {}
@@ -158,6 +169,7 @@ class Plotter(object):
         self.expressions = expressions
         self.assignments = assignments
         self.output = output
+        self.reassign = reassign
         
         self.figurexml = figurexml
         self.animate = animate
@@ -219,6 +231,11 @@ class Plotter(object):
             if res is None:
                 if self.verbose: print 'Opening "%s".' % path
                 res = xmlplot.data.NetCDFStore.loadUnknownConvention(path)
+                for old,new in self.reassign.iteritems():
+                    if new=='':
+                        if old in res.reassigneddims: del res.reassigneddims[old]
+                    else:
+                        res.reassigneddims[old] = new
                 sources[path] = (sourcename,res)
             fig.addDataSource(sourcename,res)
 
