@@ -1006,7 +1006,12 @@ class VisualizeDialog(QtGui.QMainWindow):
         
         if dlg.exec_()!=QtGui.QDialog.Accepted: return
         
-        self.settings['MaskValuesOutsideRange'].setValue(cb.isChecked())
+        mask = cb.isChecked()
+        self.settings['MaskValuesOutsideRange'].setValue(mask)
+        
+        for store in self.figurepanel.figure.getDataSources().itervalues():
+            store.maskoutsiderange = mask
+        self.figurepanel.figure.update()
 
     def onAbout(self):
         """Called when the user clicks "About..." in the "Help" menu.
