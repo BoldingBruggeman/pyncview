@@ -89,6 +89,13 @@ class SettingsStore(xmlstore.xmlstore.TypedStore):
 			<element name="Path" type="string" minOccurs="0" maxOccurs="4"/>
 		</element>
 	</element>
+	<element name="WindowPosition">
+	    <element name="Maximized" type="bool"/>
+	    <element name="X"      type="int"/>
+	    <element name="Y"      type="int"/>
+	    <element name="Width"  type="int"/>
+	    <element name="Height" type="int"/>
+	</element>
 </element>
 """
         if schema is None: schema = xmlstore.xmlstore.Schema(schemaxml,sourceisxml=True)
@@ -898,6 +905,16 @@ class VisualizeDialog(QtGui.QMainWindow):
         
         self.statusBar()
         
+        if self.settings['WindowPosition/Maximized'].getValue():
+            self.showMaximized()
+        else:
+            desktoprct = QtGui.QApplication.desktop().availableGeometry()
+            w = min(desktoprct.width(), self.settings['WindowPosition/Width'].getValue())
+            h = min(desktoprct.height(),self.settings['WindowPosition/Height'].getValue())
+            x = max(0,min(desktoprct.width() -w,self.settings['WindowPosition/X'].getValue()))
+            y = max(0,min(desktoprct.height()-h,self.settings['WindowPosition/Y'].getValue()))
+            if x is not None and y is not None and w is not None and h is not None: self.setGeometry(x,y,w,h)
+        
     def onHideSliceDockWidget(self):
         """Called when the slice widget is hidden (e.g., closed by the user.
         """
@@ -1549,6 +1566,15 @@ class VisualizeDialog(QtGui.QMainWindow):
             par.setExpanded(True)
             par = par.parent()
 
+    def closeEvent(self,event):
+        rct = self.geometry()
+        x,y,w,h = rct.left(),rct.top(),rct.width(),rct.height()
+        self.settings['WindowPosition/Maximized'].setValue(self.isMaximized())
+        self.settings['WindowPosition/X'].setValue(x)
+        self.settings['WindowPosition/Y'].setValue(y)
+        self.settings['WindowPosition/Width'].setValue(w)
+        self.settings['WindowPosition/Height'].setValue(h)
+        
 if __name__=='__main__':
     # Start Qt
     createQApp = QtGui.QApplication.startingUp()
