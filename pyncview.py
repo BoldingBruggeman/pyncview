@@ -309,10 +309,12 @@ class AnimateToolBar(QtGui.QToolBar):
     def onPlayPause(self):
         if self.timer.isActive():
             self.timer.stop()
+            self.emit(QtCore.SIGNAL('stopAnimation()'))
             self.actPlayPause.setIcon(xmlplot.gui_qt4.getIcon('player_play.png'))
             self.actPlayPause.setText('Play')
         else:
             for tb in self.group: tb.ensureStop()
+            self.emit(QtCore.SIGNAL('startAnimation()'))
             self.timer.start()
             self.actPlayPause.setIcon(xmlplot.gui_qt4.getIcon('player_pause.png'))
             self.actPlayPause.setText('Pause')
@@ -337,6 +339,8 @@ class AnimationController(QtGui.QWidget):
         
         self.toolbar = AnimateToolBar(self,dim,spin)
         self.connect(self.toolbar,QtCore.SIGNAL('onRecord(PyQt_PyObject)'), QtCore.SIGNAL('onRecord(PyQt_PyObject)'))
+        self.connect(self.toolbar,QtCore.SIGNAL('startAnimation()'), QtCore.SIGNAL('startAnimation()'))
+        self.connect(self.toolbar,QtCore.SIGNAL('stopAnimation()'),  QtCore.SIGNAL('stopAnimation()'))
         
         gridlayout = QtGui.QGridLayout()
         
@@ -493,6 +497,8 @@ class SliceWidget(QtGui.QWidget):
         if self.windowAnimate is not None: self.windowAnimate.close()
         self.windowAnimate = AnimationController(sender,dim,spin,self.animatecallback)
         self.connect(self.windowAnimate,QtCore.SIGNAL('onRecord(PyQt_PyObject)'), QtCore.SIGNAL('onRecord(PyQt_PyObject)'))
+        self.connect(self.windowAnimate,QtCore.SIGNAL('startAnimation()'), QtCore.SIGNAL('startAnimation()'))
+        self.connect(self.windowAnimate,QtCore.SIGNAL('stopAnimation()'),  QtCore.SIGNAL('stopAnimation()'))
         pos = sender.parent().mapToGlobal(sender.pos())
         self.windowAnimate.move(pos)
         self.windowAnimate.show()
@@ -1474,6 +1480,8 @@ class VisualizeDialog(QtGui.QMainWindow):
         self.connect(self.slicetab, QtCore.SIGNAL('sliceChanged(bool)'), self.onSliceChanged)
         self.connect(self.slicetab, QtCore.SIGNAL('setAxesBounds(PyQt_PyObject)'), self.setAxesBounds)
         self.connect(self.slicetab,QtCore.SIGNAL('onRecord(PyQt_PyObject)'), self.onRecordAnimation)
+        self.connect(self.slicetab,QtCore.SIGNAL('startAnimation()'), self.figurepanel.startAnimation)
+        self.connect(self.slicetab,QtCore.SIGNAL('stopAnimation()'), self.figurepanel.stopAnimation)
         self.dockSlice.setWidget(self.slicetab)
                     
         self.redraw(preserveproperties=False)
