@@ -1012,6 +1012,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         for store in self.figurepanel.figure.getDataSources().itervalues():
             store.maskoutsiderange = mask
         self.figurepanel.figure.update()
+        for dlg in self.figurepanel.detachedfigures: dlg.getFigure().update()
 
     def onAbout(self):
         """Called when the user clicks "About..." in the "Help" menu.
