@@ -5,7 +5,7 @@
 # -------------------------------------------------------------------
 
 # Import standard (i.e., non GOTM-GUI) modules.
-import sys,os,os.path,optparse,math,re
+import sys,os,os.path,optparse,math,re,xml.dom.minidom
 
 # Parse command line options
 parser = optparse.OptionParser(description="""This utility may be used to visualize the
@@ -81,8 +81,7 @@ class SettingsStore(xmlstore.xmlstore.TypedStore):
     For instance, the paths to recently opened files.
     """
 
-    def __init__(self,schema=None):
-        schemaxml = """<?xml version="1.0"?>
+    schemaxml = """<?xml version="1.0"?>
 <element name="Settings">
 	<element name="Paths">
 		<element name="MostRecentlyUsed">
@@ -96,9 +95,17 @@ class SettingsStore(xmlstore.xmlstore.TypedStore):
 	    <element name="Width"  type="int"/>
 	    <element name="Height" type="int"/>
 	</element>
+	<element name="MaskValuesOutsideRange" type="bool"/>
 </element>
 """
-        if schema is None: schema = xmlstore.xmlstore.Schema(schemaxml,sourceisxml=True)
+    defaultvalues = """<?xml version="1.0"?>
+<Settings>
+    <MaskValuesOutsideRange>True</MaskValuesOutsideRange>
+</Settings>
+        """
+
+    def __init__(self,schema=None):
+        if schema is None: schema = xmlstore.xmlstore.Schema(SettingsStore.schemaxml,sourceisxml=True)
         xmlstore.xmlstore.TypedStore.__init__(self,schema)
         
     def load(self):
@@ -109,6 +116,9 @@ class SettingsStore(xmlstore.xmlstore.TypedStore):
         except Exception,e:
             raise LoadException('Failed to load settings from "%s".\nReason: %s.\nAll settings will be reset.' % (settingspath,e))
             self.setStore(None)
+        defaultstore = xmlstore.xmlstore.TypedStore(self.schema,valueroot=xml.dom.minidom.parseString(SettingsStore.defaultvalues))
+        self.setDefaultStore(defaultstore)
+        
         self.removeNonExistent('Paths/MostRecentlyUsed','Path')
 
     @staticmethod    
@@ -157,7 +167,7 @@ class SettingsStore(xmlstore.xmlstore.TypedStore):
         
 class AboutDialog(QtGui.QDialog):
     def __init__(self,parent=None):
-        QtGui.QDialog.__init__(self,parent,QtCore.Qt.MSWindowsFixedSizeDialogHint|QtCore.Qt.CustomizeWindowHint|QtCore.Qt.WindowTitleHint|QtCore.Qt.WindowSystemMenuHint)
+        QtGui.QDialog.__init__(self,parent,QtCore.Qt.MSWindowsFixedSizeDialogHint|QtCore.Qt.CustomizeWindowHint|QtCore.Qt.WindowTitleHint)
 
         layout = QtGui.QVBoxLayout()
 
@@ -204,7 +214,7 @@ class AboutDialog(QtGui.QDialog):
         self.bnOk = QtGui.QPushButton('OK',self)
         self.connect(self.bnOk, QtCore.SIGNAL('clicked()'), self.accept)
         self.bnOk.setSizePolicy(QtGui.QSizePolicy.Fixed,QtGui.QSizePolicy.Fixed)
-        layout.addWidget(self.bnOk,0,QtCore.Qt.AlignHCenter)
+        layout.addWidget(self.bnOk,0,QtCore.Qt.AlignRight)
 
         self.setLayout(layout)
 
@@ -928,14 +938,16 @@ class VisualizeDialog(QtGui.QMainWindow):
         self.menuFile.addAction('Open...',self.onFileOpen)
         self.menuFile.addSeparator()
         #menuFile.addAction('Properties...',self.onFileProperties)
+        menuEdit = bar.addMenu('Edit')
+        menuEdit.addAction('Options...',self.onEditOptions)
         menuView = bar.addMenu('View')
         self.actSliceWindow = menuView.addAction('Slice window',self.onShowSliceWindow)
         self.actSliceWindow.setCheckable(True)
         #menuTools = bar.addMenu('Tools')
         #menuTools.addAction('Re-assign coordinates...',self.onReassignCoordinates)
 
-        menuView = bar.addMenu('Help')
-        menuView.addAction('About PyNcView...',self.onAbout)
+        menuHelp = bar.addMenu('Help')
+        menuHelp.addAction('About PyNcView...',self.onAbout)
         
         # Update the list of most recently used files in the "File" menu.
         self.updateMRU()
@@ -969,6 +981,32 @@ class VisualizeDialog(QtGui.QMainWindow):
         if not paths: return
         if len(paths)==1: paths = paths[0]
         self.load(paths)
+        
+    def onEditOptions(self):
+        dlg = QtGui.QDialog(self,QtCore.Qt.Dialog|QtCore.Qt.CustomizeWindowHint|QtCore.Qt.WindowTitleHint|QtCore.Qt.WindowCloseButtonHint)
+        dlg.setWindowTitle('Options')
+        
+        layout = QtGui.QVBoxLayout()
+        cb = QtGui.QCheckBox('Treat values outside prescribed valid range as missing data.',dlg)
+        cb.setChecked(self.settings['MaskValuesOutsideRange'].getValue(usedefault=True))
+        layout.addWidget(cb)
+        
+        layoutButtons = QtGui.QHBoxLayout()
+        bnOk = QtGui.QPushButton('OK',dlg)
+        bnCancel = QtGui.QPushButton('Cancel',dlg)
+        layoutButtons.addStretch()
+        layoutButtons.addWidget(bnOk)
+        layoutButtons.addWidget(bnCancel)
+        layout.addLayout(layoutButtons)
+        
+        dlg.setLayout(layout)
+        
+        self.connect(bnOk,     QtCore.SIGNAL('clicked()'), dlg.accept)
+        self.connect(bnCancel, QtCore.SIGNAL('clicked()'), dlg.reject)
+        
+        if dlg.exec_()!=QtGui.QDialog.Accepted: return
+        
+        self.settings['MaskValuesOutsideRange'].setValue(cb.isChecked())
 
     def onAbout(self):
         """Called when the user clicks "About..." in the "Help" menu.
@@ -1026,6 +1064,9 @@ class VisualizeDialog(QtGui.QMainWindow):
         except xmlplot.data.NetCDFError,e:
             QtGui.QMessageBox.critical(self,'Error opening NetCDF file',unicode(e))
             return
+            
+        # Determine whether to mask values otuside their valid range.
+        store.maskoutsiderange = self.settings['MaskValuesOutsideRange'].getValue(usedefault=True)
         
         # Create a name for the data store based on the file name,
         # but make sure it is unique.
