@@ -917,7 +917,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         
         if self.settings['WindowPosition/Maximized'].getValue():
             self.showMaximized()
-        else:
+        elif self.settings['WindowPosition/Width'].getValue():
             desktoprct = QtGui.QApplication.desktop().availableGeometry()
             w = min(desktoprct.width(), self.settings['WindowPosition/Width'].getValue())
             h = min(desktoprct.height(),self.settings['WindowPosition/Height'].getValue())
