@@ -3,6 +3,13 @@
 # Import standard (i.e., non GOTM-GUI) modules.
 import sys,os
 
+def printVersion(option, opt, value, parser):
+    importModules(False)
+    print r'$LastChangedRevision$'.strip('$')
+    print r'$LastChangedDate$'.strip('$')
+    for n,v in xmlplot.common.getVersions(): print '%s: %s' % (n,v)
+    sys.exit(0)
+
 def main():
     """Parses command line, creates multiplot.Plotter object, and calls plot.
     """
@@ -40,7 +47,8 @@ def main():
     either the environment variable GOTMDIR must be set, pointing to a
     directory that in turn contains the gui.py directory. Alternatively, the
     environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
-    (normally gui.py).""",version=r'$LastChangedRevision$'+'\n'+r'$LastChangedDate$')
+    (normally gui.py).""")
+    parser.add_option('--version',  action='callback', help='show program\'s version number and exit',callback=printVersion)
     parser.add_option('-s','--source',         type='string',action='callback',callback=newsource,            metavar='[SOURCENAME=]NCPATH', help='Specifies a NetCDF file from which to plot data. SOURCENAME: name of the data source that may be used in expressions (if omitted the default "source#" is used), NCPATH: path to the NetCDF file.')
     parser.add_option('-e','--expression',     type='string',action='callback',callback=newexpression,        metavar='EXPRESSION', help='Data series to plot. This can be the name of a NetCDF variable, or mathematical expression that can contain variables from NetCDF files, as well as several standard functions (e.g., sum, mean, min, max) and named constants (e.g., pi).')
     parser.add_option('-E','--namedexpression',type='string',action='callback',callback=newexpression,nargs=2,metavar='SERIESNAME EXPRESSION', help='Data series to plot. SERIESNAME: name for the data series (currently used in the default plot title and legend), EXPRESSION: variable name or mathematical expression that can contain variables from NetCDF files, as well as several standard functions (e.g., sum, mean, min, max) and named constants (e.g., pi).')

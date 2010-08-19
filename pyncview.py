@@ -7,23 +7,6 @@
 # Import standard (i.e., non GOTM-GUI) modules.
 import sys,os,os.path,optparse,math,re,xml.dom.minidom
 
-# Parse command line options
-parser = optparse.OptionParser(description="""This utility may be used to visualize the
-contents of a NetCDF file.
-This script uses the GOTM-GUI libraries extensively. To find these libraries,
-either the environment variable GOTMDIR must be set, pointing to a
-directory that in turn contains the gui.py directory. Alternatively, the
-environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
-(normally gui.py).
-""",version=r'$LastChangedRevision$'+'\n'+r'$LastChangedDate$')
-parser.add_option('-q', '--quiet', action='store_true', help='suppress output of progress messages')
-parser.add_option('--nc', type='string', help='NetCDF module to use')
-parser.set_defaults(quiet=False,nc=None)
-options,args = parser.parse_args()
-
-# One or more nc files to open may be specified on the command line.
-inputpaths = list(args)
-
 # Configure MatPlotLib backend and numerical library.
 # (should be done before any modules that use MatPlotLib are loaded)
 import matplotlib
@@ -62,6 +45,27 @@ except ImportError,e:
     print 'Unable to import GOTM-GUI libraries from "%s": %s. Please ensure that environment variable GOTMDIR or GOTMGUIDIR is set to the correct path.' % (gotmguiroot,e)
     sys.exit(1)
     
+def printVersion(option, opt, value, parser):
+    print r'$LastChangedRevision$'.strip('$')
+    print r'$LastChangedDate$'.strip('$')
+    for n,v in xmlplot.common.getVersions(): print '%s: %s' % (n,v)
+    sys.exit(0)
+
+# Parse command line options
+parser = optparse.OptionParser(description="""This utility may be used to visualize the
+contents of a NetCDF file.
+This script uses the GOTM-GUI libraries extensively. To find these libraries,
+either the environment variable GOTMDIR must be set, pointing to a
+directory that in turn contains the gui.py directory. Alternatively, the
+environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
+(normally gui.py).
+""")
+parser.add_option('--version', action='callback', callback=printVersion, help='show program\'s version number and exit')
+parser.add_option('-q', '--quiet', action='store_true', help='suppress output of progress messages')
+parser.add_option('--nc', type='string', help='NetCDF module to use')
+parser.set_defaults(quiet=False,nc=None)
+options,args = parser.parse_args()
+
 if options.nc is not None:
     if xmlplot.data.selectednetcdfmodule is None: xmlplot.data.chooseNetCDFModule()
     for xmlplot.data.selectednetcdfmodule,(m,v) in enumerate(xmlplot.data.netcdfmodules):
@@ -69,6 +73,9 @@ if options.nc is not None:
     else:
         print 'Forced NetCDF module "%s" is not available. Available modules: %s.' % (options.nc,', '.join([m[0] for m in xmlplot.data.netcdfmodules]))
         sys.exit(2)
+
+# One or more nc files to open may be specified on the command line.
+inputpaths = list(args)
 
 # -------------------------------------------------------------------
 # Actual code.
