@@ -1085,6 +1085,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         # but make sure it is unique.
         basestorename,ext = os.path.splitext(os.path.basename(path))
         basestorename = re.sub('\W','_',basestorename)
+        if basestorename[0].isdigit(): basestorename = '_'+basestorename
         storename,i = basestorename,0
         while storename in curstorenames:
             storename = '%s_%02i' % (basestorename,i)
