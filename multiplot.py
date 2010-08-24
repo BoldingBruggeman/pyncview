@@ -113,14 +113,12 @@ def main():
                   nc=options.nc,reassign=dimassignments)
                   
     # Plot
-    if options.debug:
+    try:
         plt.plot()
-    else:
-        try:
-            plt.plot()
-        except Exception,e:
-            print e
-            return 1
+    except Exception,e:
+        if options.debug: raise
+        print e
+        return 1
         
     # Return success
     return 0
