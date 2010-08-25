@@ -1248,10 +1248,15 @@ class VisualizeDialog(QtGui.QMainWindow):
                 scalarvar = self.store.getExpression(self.addSliceSpec(varname,var))
                 varslice = scalarvar.getSlice(())
                 if not isinstance(varslice,(list,tuple)): varslice = (varslice,)
+                suffix = scalarvar.getUnit()
+                if suffix:
+                    suffix = ' %s' % suffix
+                else:
+                    suffix = ''
                 dat = []
                 for s in varslice:
                     if isinstance(s,xmlplot.common.Variable.Slice): s = s.data
-                    dat.append(str(s))
+                    dat.append('%s%s' % (s,suffix))
                 self.labelMissing.setText('This variable is a scalar with value %s. It cannot be shown: only variables with 1 or 2 dimensions can be plotted.' % (', '.join(dat),))
             showslicer = ndim>2 or nsliced>0
             self.dockSlice.setVisible(showslicer)
