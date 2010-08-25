@@ -152,9 +152,10 @@ def importModules(verbose=True):
 
     # Add the GOTM-GUI directory to the search path and import the common
     # GOTM-GUI module (needed for command line parsing).
-    gotmguiroot = os.path.join(os.path.dirname(os.path.realpath(__file__)),relguipath)
     path = sys.path[:] 
-    sys.path.append(gotmguiroot)
+    if not hasattr(sys,'frozen'):
+        gotmguiroot = os.path.join(os.path.dirname(os.path.realpath(__file__)),relguipath)
+        sys.path.append(gotmguiroot)
 
     # Import remaining GOTM-GUI modules
     try:
