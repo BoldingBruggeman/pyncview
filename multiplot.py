@@ -242,7 +242,7 @@ class Plotter(object):
             oldsourcename,res = sources.get(path,(None,None))
             if res is None:
                 if self.verbose: print 'Opening "%s".' % path
-                res = xmlplot.data.NetCDFStore.loadUnknownConvention(path)
+                res = xmlplot.data.open(path)
                 for old,new in self.reassign.iteritems():
                     if new=='':
                         if old in res.reassigneddims: del res.reassigneddims[old]

@@ -1073,9 +1073,9 @@ class VisualizeDialog(QtGui.QMainWindow):
 
         # Try to load the NetCDF file.
         try:
-            store = xmlplot.data.NetCDFStore.loadUnknownConvention(paths)
+            store = xmlplot.data.open(paths)
         except xmlplot.data.NetCDFError,e:
-            QtGui.QMessageBox.critical(self,'Error opening NetCDF file',unicode(e))
+            QtGui.QMessageBox.critical(self,'Error opening file',unicode(e))
             return
             
         # Determine whether to mask values otuside their valid range.
@@ -1180,7 +1180,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         # Build and show the context menu
         menu = QtGui.QMenu(self)
         actReassign,actClose,actProperties = None,None,None
-        if isinstance(item,(xmlplot.data.NetCDFStore,xmlplot.data.NetCDFStore.NetCDFVariable)):
+        if isinstance(item,(xmlplot.data.NetCDFStore,xmlplot.common.Variable)):
             actProperties = menu.addAction('Properties...')
         if isinstance(item,xmlplot.common.VariableStore):
             actReassign = menu.addAction('Reassign coordinates...')
