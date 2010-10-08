@@ -97,6 +97,9 @@ def compseries(path1,exp1,path2,exp2,dump=None,quiet=False,order=1):
     # Import GOTM-GUI modules
     importModules(verbose=not quiet)
 
+    enc = 'utf-8'
+    if sys.stdout.isatty(): enc = sys.stdout.encoding
+
     # Open NetCDF files.
     path1,path2 = map(os.path.abspath,(path1,path2))
     store1 = xmlplot.data.NetCDFStore.loadUnknownConvention(path1)
@@ -200,9 +203,9 @@ def compseries(path1,exp1,path2,exp2,dump=None,quiet=False,order=1):
     R2 = 1.-((data1-data2)**2).sum()/((data1-mean1)**2).sum()
     
     # Print statistics
-    print ('Bias = %s %s' % (mean2-mean1,unit)).encode('utf-8')
-    print ('RMSE = %s %s' % (numpy.sqrt((delta**2).mean()),unit)).encode('utf-8')
-    print ('MAE = %s %s' % (numpy.abs(delta).mean(),unit)).encode('utf-8')
+    print ('Bias = %s %s' % (mean2-mean1,unit)).encode(enc,'ignore')
+    print ('RMSE = %s %s' % (numpy.sqrt((delta**2).mean()),unit)).encode(enc,'ignore')
+    print ('MAE = %s %s' % (numpy.abs(delta).mean(),unit)).encode(enc,'ignore')
     print 'Correlation = %s' % (((data1-mean1)*(data2-mean2)).mean()/sd1/sd2)
     print 'Coefficient of determination (R2) = %s' % R2
     
