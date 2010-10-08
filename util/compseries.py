@@ -152,6 +152,14 @@ def compseries(path1,exp1,path2,exp2,dump=None,quiet=False,order=1):
     data1 = data1.compressed()
     data2 = data2.compressed()
 
+    # Check if the final data series are not empty.
+    if len(data1.data)==0:
+        sys.stderr.write('First data series is empty.\n')
+        return 1
+    if len(data2.data)==0:
+        sys.stderr.write('Second data series is empty.\n')
+        return 1
+
     # Make sure that coordinates of the first (reference) data series are completed contained
     # within the coordinates of the second series, because we allow interpolation of the second
     # series only, not extrapolation.
