@@ -145,11 +145,10 @@ def readdata(slic,idim=0):
 
 data = readdata([slice(None)]*len(dims))
 
+enc = 'utf-8'
+if sys.stdout.isatty(): enc = sys.stdout.encoding
 def printfn(s):
-    try:
-        print s
-    except UnicodeEncodeError:
-        print s.encode('utf-8')
+    print s.encode(enc)
 
 if n==0:
     print 'No data available (or all are masked).'
