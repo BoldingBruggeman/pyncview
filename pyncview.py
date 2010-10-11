@@ -67,11 +67,11 @@ parser.set_defaults(quiet=False,nc=None)
 options,args = parser.parse_args()
 
 if options.nc is not None:
-    if xmlplot.data.selectednetcdfmodule is None: xmlplot.data.chooseNetCDFModule()
-    for xmlplot.data.selectednetcdfmodule,(m,v) in enumerate(xmlplot.data.netcdfmodules):
+    if xmlplot.data.netcdf.selectednetcdfmodule is None: xmlplot.data.netcdf.chooseNetCDFModule()
+    for xmlplot.data.netcdf.selectednetcdfmodule,(m,v) in enumerate(xmlplot.data.netcdf.netcdfmodules):
         if m==options.nc: break
     else:
-        print 'Forced NetCDF module "%s" is not available. Available modules: %s.' % (options.nc,', '.join([m[0] for m in xmlplot.data.netcdfmodules]))
+        print 'Forced NetCDF module "%s" is not available. Available modules: %s.' % (options.nc,', '.join([m[0] for m in xmlplot.data.netcdf.netcdfmodules]))
         sys.exit(2)
 
 # One or more nc files to open may be specified on the command line.
@@ -203,11 +203,11 @@ class AboutDialog(QtGui.QDialog):
         strversions += '</table>'
 
         # Enumerate available NetCDF modules.
-        if xmlplot.data.selectednetcdfmodule is None: xmlplot.data.chooseNetCDFModule()
+        if xmlplot.data.netcdf.selectednetcdfmodule is None: xmlplot.data.netcdf.chooseNetCDFModule()
         strversions += '<br><br>NetCDF modules:<table cellspacing="0" cellpadding="0">'
-        for i,(m,v) in enumerate(xmlplot.data.netcdfmodules):
+        for i,(m,v) in enumerate(xmlplot.data.netcdf.netcdfmodules):
             act = '&nbsp;'
-            if i==xmlplot.data.selectednetcdfmodule: act = '(active)'
+            if i==xmlplot.data.netcdf.selectednetcdfmodule: act = '(active)'
             strversions += '<tr><td>%s</td><td>&nbsp;</td><td>%s</td><td>&nbsp;</td><td>%s</td></tr>' % (m,v,act)
         strversions += '</table>'
 

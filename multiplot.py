@@ -192,11 +192,11 @@ class Plotter(object):
         importModules(verbose)
 
         if nc is not None:
-            if xmlplot.data.selectednetcdfmodule is None: xmlplot.data.chooseNetCDFModule()
-            for xmlplot.data.selectednetcdfmodule,(m,v) in enumerate(xmlplot.data.netcdfmodules):
+            if xmlplot.data.netcdf.selectednetcdfmodule is None: xmlplot.data.netcdf.chooseNetCDFModule()
+            for xmlplot.data.netcdf.selectednetcdfmodule,(m,v) in enumerate(xmlplot.data.netcdf.netcdfmodules):
                 if m==nc: break
             else:
-                raise Exception('Forced NetCDF module "%s" is not available. Available modules: %s.' % (nc,', '.join([m[0] for m in xmlplot.data.netcdfmodules])))
+                raise Exception('Forced NetCDF module "%s" is not available. Available modules: %s.' % (nc,', '.join([m[0] for m in xmlplot.data.netcdf.netcdfmodules])))
         
     def addExpression(self,expression,defaultsource=None,label=None):
         if defaultsource is None:
