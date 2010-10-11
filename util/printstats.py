@@ -111,7 +111,7 @@ if shape is not None and numpy.prod(shape)==1:
 
 # If we need percentiles, we need all data in memory
 # Set the shape to None to prevent iterating over dimensions.
-if options.percentiles: data = None
+if options.percentiles: shape = None
 
 n,sumx,sumx2,min,max = 0,0.,0.,None,None
 
@@ -168,6 +168,7 @@ printfn('Mean = %g%s' % (mean,unit))
 printfn( 'S.d. = %g%s' % (std,unit))
 printfn( 'Minimum = %g%s' % (min,unit))
 if options.percentiles:
+    data = numpy.sort(data)
     printfn( '2.5th percentile = %g%s' % (getPercentile(.025),unit))
     printfn( '25th percentile = %g%s' % (getPercentile(.25),unit))
     printfn( 'Median = %g%s' % (getPercentile(.5),unit))
