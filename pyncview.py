@@ -1403,7 +1403,7 @@ class VisualizeDialog(QtGui.QMainWindow):
                         vmin.append(curvardata.coords_stag[idim].min())
                         vmax.append(curvardata.coords_stag[idim].max())
                     datamin,datamax = None,None
-                    if not (hasattr(curvardata.data,'_mask') and curvardata.data._mask.all()):
+                    if not numpy.all(numpy.ma.getmask(curvardata.data)):
                         datamin,datamax = curvardata.data.min(),curvardata.data.max()
                     vmin.append(datamin)
                     vmax.append(datamax)
