@@ -834,16 +834,28 @@ class NcTreeWidget(QtGui.QTreeWidget):
         QtGui.QTreeWidget.__init__(self,*args,**kwargs)
         self.setAcceptDrops(True)
 
-    def mimeTypes(self):
-        return ('text/uri-list',)
-     
-    def supportedDropActions(self):
-        return QtCore.Qt.CopyAction
-        
-    def dropMimeData(self,parent, index, data, action):
-        for url in data.urls():
-            self.emit(QtCore.SIGNAL('fileDropped'),unicode(url.toLocalFile()))
-        return True
+    def dragEnterEvent(self,event):
+        if event.mimeData().hasUrls():
+            event.setDropAction(QtCore.Qt.CopyAction)
+            event.accept()
+        else:
+            QtGui.QTreeWidget.dragEnterEvent(self,event)
+
+    def dragMoveEvent(self,event):
+        if event.mimeData().hasUrls():
+            event.setDropAction(QtCore.Qt.CopyAction)
+            event.accept()
+        else:
+            QtGui.QTreeWidget.dragMoveEvent(self,event)
+
+    def dropEvent(self,event):
+        data = event.mimeData()
+        if event.mimeData().hasUrls():
+            for url in data.urls():
+                self.emit(QtCore.SIGNAL('fileDropped'),unicode(url.toLocalFile()))
+            event.accept()
+        else:
+            QtGui.QTreeWidget.dropEvent(self,event)
 
 class VisualizeDialog(QtGui.QMainWindow):
     """Main PyNCView window.
