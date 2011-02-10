@@ -828,7 +828,23 @@ class ReassignDialog(QtGui.QDialog):
     def onResetRemoveAll(self):
         self.store.reassigneddims = {}
         self.selectComboValues()
-                                
+
+class NcTreeWidget(QtGui.QTreeWidget):
+    def __init__(self,*args,**kwargs):
+        QtGui.QTreeWidget.__init__(self,*args,**kwargs)
+        self.setAcceptDrops(True)
+
+    def mimeTypes(self):
+        return ('text/uri-list',)
+     
+    def supportedDropActions(self):
+        return QtCore.Qt.CopyAction
+        
+    def dropMimeData(self,parent, index, data, action):
+        for url in data.urls():
+            self.emit(QtCore.SIGNAL('fileDropped'),unicode(url.toLocalFile()))
+        return True
+
 class VisualizeDialog(QtGui.QMainWindow):
     """Main PyNCView window.
     """
@@ -848,7 +864,7 @@ class VisualizeDialog(QtGui.QMainWindow):
 
         central = QtGui.QWidget(self)
 
-        self.tree = QtGui.QTreeWidget(central)
+        self.tree = NcTreeWidget(central)
         self.tree.header().hide()
         self.tree.setSizePolicy(QtGui.QSizePolicy.Minimum,QtGui.QSizePolicy.Expanding)
         self.tree.setMaximumWidth(250)
@@ -856,6 +872,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         self.tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         
         self.connect(self.tree, QtCore.SIGNAL('itemSelectionChanged()'), self.onSelectionChanged)
+        self.connect(self.tree, QtCore.SIGNAL('fileDropped'), self.load)
         self.connect(self.tree, QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)'), self.onVarDoubleClicked)
         self.connect(self.tree, QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'), self.onTreeContextMenuEvent)
         self.bnAddExpression = QtGui.QPushButton('Add custom expression...',central)
