@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-    <Product Id="*" Codepage="1252" Language="1033" Manufacturer="Bolding &amp; Burchard" Name="PyNcView" UpgradeCode="{4B998060-7774-43AF-BC61-8E1D4FE4F2D7}" Version="$(var.Version)">
+    <Product Id="*" Codepage="1252" Language="1033" Manufacturer="Bolding &amp; Burchard" Name="PyNcView" UpgradeCode="{3C4E8E60-75E5-462d-BC88-8655C7A637EC}" Version="$(var.Version)">
         <Package Compressed="yes" InstallerVersion="300" Languages="1033" Manufacturer="Jorn Bruggeman" Platform="x86" />
         <Binary Id="DefBannerBitmap" SourceFile=".\Binary\DefBannerBitmap.bmp" />
         <Binary Id="UpFldrBtn"       SourceFile=".\Binary\UpFldrBtn.bmp"       />
@@ -629,7 +629,7 @@
                 </Control>
             </Dialog>
         </UI>
-        <Upgrade Id="{4B998060-7774-43AF-BC61-8E1D4FE4F2D7}">
+        <Upgrade Id="{3C4E8E60-75E5-462d-BC88-8655C7A637EC}">
             <UpgradeVersion Maximum="$(var.Version)" Property="PREVIOUSVERSIONSINSTALLED" IncludeMaximum="yes" />
             <UpgradeVersion Minimum="$(var.Version)" Property="NEWERPRODUCTFOUND" IncludeMinimum="no" OnlyDetect="yes" />
         </Upgrade>
