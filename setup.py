@@ -2,7 +2,8 @@ import sys,os
 
 # Windows finds the CRT in the side-by-side assembly store (SxS), but Python does not look there.
 # Therefore we add a location of the CRT to the Python path.
-sys.path.append('C:\\Program Files\\Microsoft Visual Studio 8\\VC\\redist\\x86\\Microsoft.VC80.CRT');
+sys.path.append('C:\\Program Files\\Microsoft Visual Studio 8\\VC\\redist\\x86\\Microsoft.VC80.CRT')
+sys.path.append('C:\\Program Files (x86)\\Microsoft Visual Studio 9.0\\VC\\redist\\x86\\Microsoft.VC90.CRT')
 
 try:
     import modulefinder
