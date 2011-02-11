@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Include xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<ProgId Id="NetCDF file" Description="NetCDF file" Advertise="yes">
+		<Extension Id="nc" Advertise="yes">
+			<Verb Id="open" Command="&amp;Open" Argument="&quot;%1&quot;" Sequence="1" />
+		</Extension>
+	</ProgId>
+	<Shortcut Id="pyncview.exe" Directory="ProgramMenuFolder" Name="PyNcView" Description="Use the PyNcView to view NetCDF files." Show="normal" WorkingDirectory="TARGETDIR" Advertise="yes" />
+</Include>
