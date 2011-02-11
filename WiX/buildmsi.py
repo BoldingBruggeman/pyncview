@@ -3,6 +3,7 @@ sourcedir = '../dist'
 exe = 'pyncview.exe'
 mainwxsname = 'pyncview'    # used for input .wxs and output .msi
 compgroupid = 'PyNcViewComponents'
+versioncache = 'lastversion.dat'
 
 # Import modules
 import os,re,sys,codecs
@@ -17,6 +18,21 @@ if len(sys.argv)!=2:
 version = sys.argv[1]
 output = 'files.wxs'
 indent = '  '
+
+# Make sure the new version is higher than the older version
+if os.path.isfile(versioncache):
+    f = open(versioncache,'r')
+    oldversion = f.readline()
+    f.close()
+    iversion = map(int,version.split('.'))
+    ioldversion = map(int,oldversion.split('.'))
+    assert len(iversion)==3,'New version must consist of three integers separated by periods (.)'
+    assert len(ioldversion)==3,'Old version must consist of three integers separated by periods (.)'
+    for iold,inew in zip(ioldversion,iversion):
+        if inew>iold: break
+    else:
+        print 'New version %s is less than, or equal to, old version %s.' % (version,oldversion)
+        sys.exit(1)
 
 # Find WiX utilities
 if 'WIX' not in os.environ:
@@ -95,3 +111,7 @@ ret = subprocess.call((path_light,'%s.wixobj' % mainwxsname,'files.wixobj','vcre
 if ret!=0:
     print 'LIGHT failed with return code %i: exiting.' % ret
     sys.exit(1)
+
+f = open(versioncache,'w')
+f.write(version)
+f.close()
