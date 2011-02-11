@@ -16,10 +16,12 @@
 					<ComponentGroupRef Id="PyNcViewComponents"/>
         </Feature>
         <FeatureRef Id="VCRedist"/>
+        <Icon Id="pyncview.ico" SourceFile="..\pyncview.ico" />
         <Media Id="1" Cabinet="data.cab" EmbedCab="yes" CompressionLevel="high" />
         <Property Id="ARPHELPLINK" Value="http://sourceforge.net/projects/pyncview/" />
         <Property Id="ARPURLINFOABOUT" Value="http://www.bolding-burchard.com" />
         <Property Id="ALLUSERS" Value="2" />
+        <Property Id="ARPPRODUCTICON" Value="pyncview.ico" />
         <Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
         <Property Id="NEWERPRODUCTFOUND" Secure="yes" />
         <Property Id="VSDUIANDADVERTISED" Value="This advertised application will not be installed because it might be unsafe. Contact your administrator to change the installation user interface option of the package to basic." />

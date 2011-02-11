@@ -30,13 +30,16 @@ if not hasattr(sys,'frozen'):
 
     # Add the GOTM-GUI directory to the search path and import the common
     # GOTM-GUI module (needed for command line parsing).
-    gotmguiroot = os.path.join(os.path.dirname(os.path.realpath(__file__)),relguipath)
+    rootdir = os.path.dirname(os.path.realpath(__file__))
+    gotmguiroot = os.path.join(rootdir,relguipath)
     path = sys.path[:] 
     sys.path.append(gotmguiroot)
 else:
     gotmguiroot = '.'
     import mpl_toolkits.basemap
-    mpl_toolkits.basemap.basemap_datadir = os.path.join(os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding())),'basemap-data')
+
+    rootdir = os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding()))
+    mpl_toolkits.basemap.basemap_datadir = os.path.join(rootdir,'basemap-data')
 
 # Import remaining GOTM-GUI modules
 try:
@@ -179,6 +182,7 @@ class AboutDialog(QtGui.QDialog):
         layout = QtGui.QVBoxLayout()
 
         self.label = QtGui.QLabel('PyNcView was developed by <a href="mailto:jorn.bruggeman@xs4all.nl">Jorn Bruggeman</a> from funding by <a href="http://www.bolding-burchard.com">Bolding & Burchard</a>.',self)
+        self.label.setOpenExternalLinks(True)
         layout.addWidget(self.label)
 
         versions = []
@@ -1672,6 +1676,7 @@ if __name__=='__main__':
     else:
         app = QtGui.qApp
 
+    app.setWindowIcon(QtGui.QIcon(os.path.join(rootdir,'pyncview.png')))
     dialog = VisualizeDialog()
     for path in inputpaths:
         try:

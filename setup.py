@@ -41,7 +41,7 @@ def addtreewithwildcard(sourceroot,path,localtarget):
             own_data_files.append((os.path.join(localtarget,os.path.dirname(f)),[os.path.join(sourceroot,f)]))
     os.chdir(cwd)
 
-own_data_files = []
+own_data_files = [('',['pyncview.png'])]
 
 # Let MatPlotLib add its own data files.
 import matplotlib
@@ -59,7 +59,7 @@ adddir(mpl_toolkits.basemap.basemap_datadir,'basemap-data')
 #own_data_files.append(('',[os.path.join(os.environ['VS80COMNTOOLS'],'..\\..\\VC\\redist\\x86\\Microsoft.VC80.CRT\\Microsoft.VC80.CRT.manifest')]))
 
 setup(
-    windows=[{'script':'pyncview.py'}],
+    windows=[{'script':'pyncview.py','icon_resources':[(0,'pyncview.ico')]}],
     console=[{'script':'multiplot.py'}],
     options={'py2exe': {
                 'packages' : ['matplotlib', 'pytz'],
