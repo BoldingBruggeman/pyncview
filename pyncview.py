@@ -43,7 +43,7 @@ else:
 
 # Import remaining GOTM-GUI modules
 try:
-    import xmlplot.data,xmlplot.plot,xmlplot.gui_qt4,xmlplot.expressions,xmlstore.gui_qt4
+    import xmlplot.data,xmlplot.plot,xmlplot.gui_qt4,xmlplot.expressions,xmlstore.gui_qt4,errortrap
 except ImportError,e:
     print 'Unable to import GOTM-GUI libraries from "%s": %s. Please ensure that environment variable GOTMDIR or GOTMGUIDIR is set to the correct path.' % (gotmguiroot,e)
     sys.exit(1)
@@ -53,32 +53,6 @@ def printVersion(option, opt, value, parser):
     print r'$LastChangedDate$'.strip('$')
     for n,v in xmlplot.common.getVersions(): print '%s: %s' % (n,v)
     sys.exit(0)
-
-# Parse command line options
-parser = optparse.OptionParser(description="""This utility may be used to visualize the
-contents of a NetCDF file.
-This script uses the GOTM-GUI libraries extensively. To find these libraries,
-either the environment variable GOTMDIR must be set, pointing to a
-directory that in turn contains the gui.py directory. Alternatively, the
-environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
-(normally gui.py).
-""")
-parser.add_option('--version', action='callback', callback=printVersion, help='show program\'s version number and exit')
-parser.add_option('-q', '--quiet', action='store_true', help='suppress output of progress messages')
-parser.add_option('--nc', type='string', help='NetCDF module to use')
-parser.set_defaults(quiet=False,nc=None)
-options,args = parser.parse_args()
-
-if options.nc is not None:
-    if xmlplot.data.netcdf.selectednetcdfmodule is None: xmlplot.data.netcdf.chooseNetCDFModule()
-    for xmlplot.data.netcdf.selectednetcdfmodule,(m,v) in enumerate(xmlplot.data.netcdf.netcdfmodules):
-        if m==options.nc: break
-    else:
-        print 'Forced NetCDF module "%s" is not available. Available modules: %s.' % (options.nc,', '.join([m[0] for m in xmlplot.data.netcdf.netcdfmodules]))
-        sys.exit(2)
-
-# One or more nc files to open may be specified on the command line.
-inputpaths = list(args)
 
 # -------------------------------------------------------------------
 # Actual code.
@@ -1669,6 +1643,31 @@ class VisualizeDialog(QtGui.QMainWindow):
         self.settings['WindowPosition/Height'].setValue(h)
         
 if __name__=='__main__':
+    # Parse command line options
+    parser = optparse.OptionParser(description="""This utility may be used to visualize the
+contents of a NetCDF file.
+This script uses the GOTM-GUI libraries extensively. To find these libraries,
+either the environment variable GOTMDIR must be set, pointing to a
+directory that in turn contains the gui.py directory. Alternatively, the
+environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
+(normally gui.py).
+    """)
+    parser.add_option('--version', action='callback', callback=printVersion, help='show program\'s version number and exit')
+    parser.add_option('--nc', type='string', help='NetCDF module to use')
+    parser.set_defaults(nc=None)
+    options,args = parser.parse_args()
+
+    if options.nc is not None:
+        if xmlplot.data.netcdf.selectednetcdfmodule is None: xmlplot.data.netcdf.chooseNetCDFModule()
+        for xmlplot.data.netcdf.selectednetcdfmodule,(m,v) in enumerate(xmlplot.data.netcdf.netcdfmodules):
+            if m==options.nc: break
+        else:
+            print 'Forced NetCDF module "%s" is not available. Available modules: %s.' % (options.nc,', '.join([m[0] for m in xmlplot.data.netcdf.netcdfmodules]))
+            sys.exit(2)
+
+    # One or more nc files to open may be specified on the command line.
+    inputpaths = list(args)
+
     # Start Qt
     createQApp = QtGui.QApplication.startingUp()
     if createQApp:
@@ -1676,15 +1675,27 @@ if __name__=='__main__':
     else:
         app = QtGui.qApp
 
+    # Set icon for all windows.
     app.setWindowIcon(QtGui.QIcon(os.path.join(rootdir,'pyncview.png')))
+    
+    # Create main dialog.
     dialog = VisualizeDialog()
+    
+    # Open files provided on the command line (if any).
     for path in inputpaths:
         try:
             dialog.load(path)
         except Exception,e:
             print 'Error: %s' % e
 
-    # Show dialog and wait for it to close
+    # Show dialog
     dialog.show()
+    
+    # Redirect expections to Qt-based dialog.
+    errortrap.redirect_stderr('PyNcView','You may be able to continue working. However, we would appreciate it if you report this error. To do so, post a message to <a href="http://sourceforge.net/projects/pyncview/forums/forum/973008">the PyNcView forum</a> with the above error message, and the circumstances under which the error occurred.')
+    
+    # Start application message loop
     ret = app.exec_()
+
+    # Save persistent program settings.    
     dialog.settings.save()
