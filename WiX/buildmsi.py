@@ -89,7 +89,7 @@ class WxsInclude:
 
 f_files = WxsInclude(output)
 
-f_files.writeline('<DirectoryRef Id="TARGETDIR">',addindent=1)
+f_files.writeline('<DirectoryRef Id="APPLICATIONFOLDER">',addindent=1)
 enumfiles(f_files,sourcedir)
 f_files.writeline('</DirectoryRef>',addindent=-1)
 
@@ -107,7 +107,7 @@ if ret!=0:
     print 'CANDLE failed with return code %i: exiting.' % ret
     sys.exit(1)
 
-ret = subprocess.call((path_light,'%s.wixobj' % mainwxsname,'files.wixobj','vcredist.wixobj','-b','../dist','-o','%s-%s.msi' % (mainwxsname,version)))
+ret = subprocess.call((path_light,'%s.wixobj' % mainwxsname,'files.wixobj','vcredist.wixobj','-ext','WixUIExtension','-cultures:en-us','-b','../dist','-o','%s-%s.msi' % (mainwxsname,version)))
 if ret!=0:
     print 'LIGHT failed with return code %i: exiting.' % ret
     sys.exit(1)
