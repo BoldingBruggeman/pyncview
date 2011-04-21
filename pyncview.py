@@ -617,7 +617,7 @@ class NcFilePropertiesDialog(QtGui.QDialog):
             lab = QtGui.QLabel('Global NetCDF attributes:',self)
             layout.addWidget(lab,irow,0,1,3)
             irow += 1
-            for k in sorted(props,key=str.lower):
+            for k in sorted(props,key=lambda x: x.lower()):
                 v = getattr(nc,k)
                 labk = QtGui.QLabel(k,self)
                 labv = QtGui.QLabel(str(v),self)
@@ -686,7 +686,7 @@ class NcVariablePropertiesDialog(QtGui.QDialog):
             lab = QtGui.QLabel('NetCDF attributes:',self)
             layout.addWidget(lab,irow,0,1,3)
             irow += 1
-            for k in sorted(props.iterkeys(),key=str.lower):
+            for k in sorted(props.iterkeys(),key=lambda x: x.lower()):
                 v = props[k]
                 labk = QtGui.QLabel(k,self)
                 labv = QtGui.QLabel(str(v),self)
@@ -732,7 +732,7 @@ class ReassignDialog(QtGui.QDialog):
             combo = QtGui.QComboBox(self)
             self.dim2combo[dim] = combo
             added = []
-            for vn in sorted(vars.iterkeys(),key=str.lower):
+            for vn in sorted(vars.iterkeys(),key=lambda x: x.lower()):
                 v = vars[vn]
                 if dim in v.getDimensions_raw(reassign=False):
                     added.append(vn)
