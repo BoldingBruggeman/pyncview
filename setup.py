@@ -64,7 +64,7 @@ setup(
     options={'py2exe': {
                 'packages' : ['matplotlib', 'pytz'],
 #                'includes' : ['sip','PyQt4._qt'],
-                'includes' : ['sip','netCDF4_utils','netcdftime'],
+                'includes' : ['sip','netCDF4_utils','netcdftime','ordereddict'],
                 'excludes' : ['_gtkagg', '_tkagg', '_wxagg','Tkconstants','Tkinter','tcl','wx','pynetcdf','cProfile','pstats','modeltest','pupynere','Scientific'],
                 'dll_excludes': ['libgdk-win32-2.0-0.dll', 'libgobject-2.0-0.dll', 'libgdk_pixbuf-2.0-0.dll','wxmsw26uh_vc.dll','tcl84.dll','tk84.dll','powrprof.dll'],
             }},
