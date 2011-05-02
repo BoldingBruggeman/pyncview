@@ -62,7 +62,8 @@ def main():
     parser.add_option('--debug',       action='store_true', help='Activate debugging (more elaborate error messages).')
     parser.add_option('--nc', type='string', help='NetCDF module to use')
     parser.add_option('--nosqueeze',action='store_true',help='prevent squeezing out of singleton dimensions (with length 1)')
-    parser.set_defaults(dpi=96,quiet=False,sources={},animate=None,output=None,expressions=[],lastsource=None,id=[],debug=False,nc=None,reassign=None,nosqueeze=False)
+    parser.add_option('--nomask',action='store_true',help='prevent masking of values outside their valid range as defined in NetCDF')
+    parser.set_defaults(dpi=96,quiet=False,sources={},animate=None,output=None,expressions=[],lastsource=None,id=[],debug=False,nc=None,reassign=None,nosqueeze=False,nomask=False)
 
     # Add old deprecated options (not shown in help text)
     parser.add_option('-f','--font',     type='string',help=optparse.SUPPRESS_HELP)
@@ -111,7 +112,7 @@ def main():
     # Create plotter object
     plt = Plotter(options.sources,options.expressions,assignments=assignments,verbose=not options.quiet,output=options.output,
                   figurexml=options.figurexml,animate=options.animate,dpi=options.dpi,id=options.id,debug=options.debug,
-                  nc=options.nc,reassign=dimassignments,autosqueeze=not options.nosqueeze)
+                  nc=options.nc,reassign=dimassignments,autosqueeze=not options.nosqueeze,maskoutsiderange=not options.nomask)
                   
     # Plot
     try:
@@ -168,7 +169,7 @@ def importModules(verbose=True):
     sys.path = path
 
 class Plotter(object):
-    def __init__(self,sources=None,expressions=None,assignments=None,output=None,verbose=True,figurexml=None,dpi=None,animate=None,id=[],debug=False,nc=None,reassign={},autosqueeze=False):
+    def __init__(self,sources=None,expressions=None,assignments=None,output=None,verbose=True,figurexml=None,dpi=None,animate=None,id=[],debug=False,nc=None,reassign={},autosqueeze=False,maskoutsiderange=True):
         if sources     is None: sources = {}
         if expressions is None: expressions = []
         if assignments is None: assignments = {}
@@ -179,6 +180,7 @@ class Plotter(object):
         self.output = output
         self.reassign = reassign
         self.autosqueeze = autosqueeze
+        self.maskoutsiderange = maskoutsiderange
         
         self.figurexml = figurexml
         self.animate = animate
@@ -248,6 +250,7 @@ class Plotter(object):
                         if old in res.reassigneddims: del res.reassigneddims[old]
                     else:
                         res.reassigneddims[old] = new
+                res.maskoutsiderange = self.maskoutsiderange
                 sources[path] = (sourcename,res)
             fig.addDataSource(sourcename,res)
 
