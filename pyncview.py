@@ -808,8 +808,8 @@ class ReassignDialog(QtGui.QDialog):
         self.selectComboValues()
 
 class NcTreeWidget(QtGui.QTreeWidget):
-    def __init__(self,*args,**kwargs):
-        QtGui.QTreeWidget.__init__(self,*args,**kwargs)
+    def __init__(self,parent):
+        QtGui.QTreeWidget.__init__(self,parent)
         self.setAcceptDrops(True)
 
     def dragEnterEvent(self,event):
