@@ -160,7 +160,7 @@ class AboutDialog(QtGui.QDialog):
         layout.addWidget(self.label)
 
         versions = []
-        versions.append(('Python','%i.%i.%i %s %i' % sys.version_info))
+        versions.append(('Python','%i.%i.%i %s %i' % tuple(sys.version_info)))
         versions.append(('Qt4',QtCore.qVersion()))
         versions.append(('PyQt4',QtCore.PYQT_VERSION_STR))
         versions.append(('numpy',numpy.__version__))
