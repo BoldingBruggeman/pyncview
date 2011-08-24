@@ -850,23 +850,7 @@ class VisualizeDialog(QtGui.QMainWindow):
             print e
             pass
 
-        closebutton = xmlstore.gui_qt4.needCloseButton()
-
         central = QtGui.QWidget(self)
-
-        self.tree = NcTreeWidget(central)
-        self.tree.header().hide()
-        self.tree.setSizePolicy(QtGui.QSizePolicy.Minimum,QtGui.QSizePolicy.Expanding)
-        self.tree.setMaximumWidth(250)
-        self.tree.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        
-        self.connect(self.tree, QtCore.SIGNAL('itemSelectionChanged()'), self.onSelectionChanged)
-        self.connect(self.tree, QtCore.SIGNAL('fileDropped'), self.load)
-        self.connect(self.tree, QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)'), self.onVarDoubleClicked)
-        self.connect(self.tree, QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'), self.onTreeContextMenuEvent)
-        self.bnAddExpression = QtGui.QPushButton('Add custom expression...',central)
-        self.connect(self.bnAddExpression, QtCore.SIGNAL('clicked()'), self.editExpression)
 
         self.figurepanel = xmlplot.gui_qt4.FigurePanel(central)
         self.figurepanel.setMinimumSize(500,350)
@@ -877,28 +861,41 @@ class VisualizeDialog(QtGui.QMainWindow):
         self.labelMissing.setWordWrap(True)
         self.labelMissing.setVisible(False)
 
-        #self.label = QtGui.QLabel('Here you can view the results of the simulation. Please choose a variable to be plotted from the menu.',self)
-        
-        addspannedrow = 1
-        if closebutton: addspannedrow = 0
+        layout = QtGui.QVBoxLayout(central)
+        layout.addWidget(self.labelMissing,alignment=QtCore.Qt.AlignTop)
+        layout.addWidget(self.figurepanel)
 
-        layout = QtGui.QGridLayout()
-        #layout.addWidget(self.label,0,0,1,2)
-        layout.addWidget(self.tree,1,0,2,1)
-        layout.addWidget(self.bnAddExpression,3,0)
-        layout.addWidget(self.labelMissing,1,1,1,1,QtCore.Qt.AlignTop)
-        layout.addWidget(self.figurepanel,2,1,1+addspannedrow,1)
-
-        if closebutton:
-            self.bnClose = QtGui.QPushButton(xmlplot.gui_qt4.getIcon('exit.png'),'Close',central)
-            self.connect(self.bnClose, QtCore.SIGNAL('clicked()'), self.close)
-            layout.addWidget(self.bnClose,3,2,1,1,QtCore.Qt.AlignRight)
-
-        layout.setColumnStretch(1,1)
-        layout.setRowStretch(2,1)
-        
-        central.setLayout(layout)
         self.setCentralWidget(central)
+
+        browserwidget = QtGui.QWidget(self)
+        
+        self.browsertoolbar = QtGui.QToolBar(browserwidget)
+
+        self.tree = NcTreeWidget(browserwidget)
+        self.tree.header().hide()
+        self.tree.setSizePolicy(QtGui.QSizePolicy.Minimum,QtGui.QSizePolicy.Expanding)
+        self.tree.setMinimumWidth(75)
+        self.tree.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        
+        self.connect(self.tree, QtCore.SIGNAL('itemSelectionChanged()'), self.onSelectionChanged)
+        self.connect(self.tree, QtCore.SIGNAL('fileDropped'), self.load)
+        self.connect(self.tree, QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)'), self.onVarDoubleClicked)
+        self.connect(self.tree, QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'), self.onTreeContextMenuEvent)
+        #self.bnAddExpression = QtGui.QPushButton('Add custom expression...',browserwidget)
+        #self.connect(self.bnAddExpression, QtCore.SIGNAL('clicked()'), self.editExpression)
+        
+        browserlayout = QtGui.QVBoxLayout(browserwidget)
+        browserlayout.setSpacing(0)
+        browserlayout.addWidget(self.browsertoolbar)
+        browserlayout.addWidget(self.tree)
+        #browserlayout.addWidget(self.bnAddExpression)
+
+        try:
+            # Try-except because versions of Qt4 < 4.3 did not support this attribute
+            browserlayout.setContentsMargins(0,0,0,0)
+        except AttributeError:
+            pass
 
         self.setWindowTitle('PyNcView')
         
@@ -910,10 +907,17 @@ class VisualizeDialog(QtGui.QMainWindow):
                 
         self.dockSlice = SliceDockWidget('Slicing',self)
         self.dockSlice.setFeatures(QtGui.QDockWidget.DockWidgetMovable|QtGui.QDockWidget.DockWidgetFloatable|QtGui.QDockWidget.DockWidgetClosable)
+        self.dockSlice.setAllowedAreas(QtCore.Qt.LeftDockWidgetArea|QtCore.Qt.RightDockWidgetArea)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.dockSlice)
         self.dockSlice.setVisible(False)
         self.connect(self.dockSlice, QtCore.SIGNAL('hidden()'), self.onHideSliceDockWidget)
         self.slicetab = None
+        
+        self.dockFileBrowser = QtGui.QDockWidget('Workspace explorer',self)
+        self.dockFileBrowser.setFeatures(QtGui.QDockWidget.DockWidgetMovable|QtGui.QDockWidget.DockWidgetFloatable)
+        self.dockFileBrowser.setAllowedAreas(QtCore.Qt.LeftDockWidgetArea|QtCore.Qt.RightDockWidgetArea)
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.dockFileBrowser)
+        self.dockFileBrowser.setWidget(browserwidget)
 
         self.expressionroot = None
         self.allowupdates = True
@@ -923,9 +927,18 @@ class VisualizeDialog(QtGui.QMainWindow):
         
         self.lastpath = ''
         if self.settings['Paths/MostRecentlyUsed'].children: self.lastpath = self.settings['Paths/MostRecentlyUsed'].children[0].getValue()
-        self.mruactions = []
 
         self.createMenu()
+
+        self.bnopen = QtGui.QToolButton(self.browsertoolbar)
+        act = QtGui.QAction(xmlplot.gui_qt4.getIcon('fileopen.png'),'Open',self.browsertoolbar)
+        self.bnopen.setPopupMode(QtGui.QToolButton.MenuButtonPopup)
+        self.connect(act, QtCore.SIGNAL('triggered()'), self.onFileOpen)
+        self.bnopen.setDefaultAction(act)
+        self.bnopen.setMenu(self.menuRecentFile)
+        self.browsertoolbar.addWidget(self.bnopen)
+        self.browsertoolbar.addAction(xmlplot.gui_qt4.getIcon('funct.png'),'Add custom expression',self.editExpression)
+        self.browsertoolbar.setIconSize(QtCore.QSize(16,16))
         
         self.statusBar()
         
@@ -949,13 +962,14 @@ class VisualizeDialog(QtGui.QMainWindow):
         """
         bar = self.menuBar()
         self.menuFile = bar.addMenu('File')
-        self.menuFile.addAction('Open...',self.onFileOpen)
+        self.menuFile.addAction(xmlplot.gui_qt4.getIcon('fileopen.png'),'Open...',self.onFileOpen,QtGui.QKeySequence.Open)
+        self.menuRecentFile = self.menuFile.addMenu('Open Recent')
+        self.menuFile.addAction(xmlplot.gui_qt4.getIcon('exit.png'),'Exit',self.close,QtGui.QKeySequence.Quit)
         self.menuFile.addSeparator()
-        #menuFile.addAction('Properties...',self.onFileProperties)
         menuEdit = bar.addMenu('Edit')
         menuEdit.addAction('Options...',self.onEditOptions)
         menuView = bar.addMenu('View')
-        self.actSliceWindow = menuView.addAction('Slice window',self.onShowSliceWindow)
+        self.actSliceWindow = menuView.addAction('Slice Window',self.onShowSliceWindow)
         self.actSliceWindow.setCheckable(True)
         #menuTools = bar.addMenu('Tools')
         #menuTools.addAction('Re-assign coordinates...',self.onReassignCoordinates)
@@ -969,8 +983,7 @@ class VisualizeDialog(QtGui.QMainWindow):
     def updateMRU(self):
         """Updates the list of Most Recently Used files at the bottom of the "File" menu.
         """
-        for act in self.mruactions: self.menuFile.removeAction(act)
-        self.mruactions = []
+        self.menuRecentFile.clear()
         
         class MRUTrigger:
             def __init__(self,path,target):
@@ -981,10 +994,8 @@ class VisualizeDialog(QtGui.QMainWindow):
                 
         for i,node in enumerate(self.settings['Paths/MostRecentlyUsed'].children):
             path = node.getValue()
-            act = self.menuFile.addAction(os.path.basename(path),MRUTrigger(path,self.load))
-            #act.setToolTip(path)
+            act = self.menuRecentFile.addAction(os.path.basename(path),MRUTrigger(path,self.load))
             act.setStatusTip(path)
-            self.mruactions.append(act)
         
     def onFileOpen(self):
         """Called when the user clicks "open" in the "File" menu.
@@ -1642,21 +1653,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         self.settings['WindowPosition/Width'].setValue(w)
         self.settings['WindowPosition/Height'].setValue(h)
         
-if __name__=='__main__':
-    # Parse command line options
-    parser = optparse.OptionParser(description="""This utility may be used to visualize the
-contents of a NetCDF file.
-This script uses the GOTM-GUI libraries extensively. To find these libraries,
-either the environment variable GOTMDIR must be set, pointing to a
-directory that in turn contains the gui.py directory. Alternatively, the
-environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
-(normally gui.py).
-    """)
-    parser.add_option('--version', action='callback', callback=printVersion, help='show program\'s version number and exit')
-    parser.add_option('--nc', type='string', help='NetCDF module to use')
-    parser.set_defaults(nc=None)
-    options,args = parser.parse_args()
-
+def main(options,args):
     if options.nc is not None:
         if xmlplot.data.netcdf.selectednetcdfmodule is None: xmlplot.data.netcdf.chooseNetCDFModule()
         for xmlplot.data.netcdf.selectednetcdfmodule,(m,v) in enumerate(xmlplot.data.netcdf.netcdfmodules):
@@ -1699,3 +1696,34 @@ environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
 
     # Save persistent program settings.    
     dialog.settings.save()
+    
+    return ret
+
+if __name__=='__main__':
+    # Parse command line options
+    parser = optparse.OptionParser(description="""This utility may be used to visualize the
+contents of a NetCDF file.
+This script uses the GOTM-GUI libraries extensively. To find these libraries,
+either the environment variable GOTMDIR must be set, pointing to a
+directory that in turn contains the gui.py directory. Alternatively, the
+environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
+(normally gui.py).
+    """)
+    parser.add_option('--version', action='callback', callback=printVersion, help='show program\'s version number and exit')
+    parser.add_option('--nc', type='string', help='NetCDF module to use')
+    parser.add_option('-p','--profile',type='string',help='activates profiling, saving to the supplied path.')
+    parser.set_defaults(nc=None,profile=None)
+    options,args = parser.parse_args()
+
+    if options.profile is not None:
+        # We will do profiling
+        import cProfile,pstats
+        cProfile.run('main(options,args)', options.profile)
+        p = pstats.Stats(options.profile)
+        p.strip_dirs().sort_stats('cumulative').print_stats()
+    else:
+        # Just enter the main loop
+        ret = main(options,args)
+
+    # Exit
+    sys.exit(ret)
