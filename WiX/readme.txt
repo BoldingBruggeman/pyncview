@@ -16,3 +16,10 @@ http://wix.sourceforge.net
 http://sourceforge.net/projects/pywin32/
 
 
+Testing
+
+The best test of a newly compiled installation package is installation on a virgin Windows XP, e.g., via VirtualPC/Windows XP Mode on Windows 7. PyNcView should install correctly, and open NetCDF and HDF4 files correctly. It is also recoemmended to test the mapping/projection functionality.
+
+Potential pitfalls
+
+Python's distutils appears to grab necessarily DLLs wherever it finds them in the system path. On 64-bit systems, this may lead to 64-bit DLLs being included in the 32-bit package, thus breaking pyncview on any other system (it may still run on the 64-bit system!). This has been observed for zlib1.dll.

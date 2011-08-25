@@ -5,20 +5,28 @@ import sys,os
 sys.path.append('C:\\Program Files\\Microsoft Visual Studio 8\\VC\\redist\\x86\\Microsoft.VC80.CRT')
 sys.path.append('C:\\Program Files (x86)\\Microsoft Visual Studio 9.0\\VC\\redist\\x86\\Microsoft.VC90.CRT')
 
+# win32com [Python for Windows extensions] makes additional submodules available
+# by modifying its __path__ attribute. Distutils cannot handle runtime modification
+# of __path__. Therefore, we explicitly register its additional paths here.
 try:
     import modulefinder
-    for extra in ['win32com','win32com.shell']: #,"win32com.mapi"
+    for extra in ('win32com','win32com.shell'):
         __import__(extra)
         m = sys.modules[extra]
         for p in m.__path__[1:]:
             modulefinder.AddPackagePath(extra, p)
 except ImportError:
-    # no build path setup, no worries.
+    # win32com not found. This is supported on non-Windows systems.
     pass
 
-# Here we import Scientific. This will automatically add the path with Scientific
-# extension modules (Scientific_netcdf) to the Python path.
-import Scientific
+# ScientificPython makes additional [binary] modules available by modifying sys.path.
+# during import. Make this happen now, so that distutils can pick up these additional
+# modules at a later stage.
+try:
+    import Scientific
+except ImportError:
+    # ScientificPython not found. This is supported if another NetCDF module is available.
+    pass
 
 from distutils.core import setup
 import py2exe
@@ -65,7 +73,7 @@ setup(
                 'packages' : ['matplotlib', 'pytz'],
 #                'includes' : ['sip','PyQt4._qt'],
                 'includes' : ['sip','netCDF4_utils','netcdftime','ordereddict'],
-                'excludes' : ['_gtkagg', '_tkagg', '_wxagg','Tkconstants','Tkinter','tcl','wx','pynetcdf','cProfile','pstats','modeltest','pupynere','Scientific'],
+                'excludes' : ['_gtkagg', '_tkagg', '_wxagg','Tkconstants','Tkinter','tcl','wx','pynetcdf','cProfile','pstats','modeltest','pupynere','Scientific','scipy'],
                 'dll_excludes': ['libgdk-win32-2.0-0.dll', 'libgobject-2.0-0.dll', 'libgdk_pixbuf-2.0-0.dll','wxmsw26uh_vc.dll','tcl84.dll','tk84.dll','powrprof.dll'],
             }},
     data_files=own_data_files
