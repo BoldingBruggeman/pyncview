@@ -5,7 +5,10 @@
 # -------------------------------------------------------------------
 
 # Import standard (i.e., non GOTM-GUI) modules.
-import sys,os,os.path,optparse,math,re,xml.dom.minidom
+import sys,os,os.path,optparse,math,re,xml.dom.minidom,warnings
+
+# Ignore DeprecationWarnings, which are interesting for developers only.
+warnings.simplefilter('ignore', DeprecationWarning)
 
 # Configure MatPlotLib backend and numerical library.
 # (should be done before any modules that use MatPlotLib are loaded)
@@ -561,142 +564,83 @@ class SliceWidget(QtGui.QWidget):
                 slics[dim] = int(spin.value())
         return slics
 
-class NcFilePropertiesDialog(QtGui.QDialog):
-    def __init__(self,store,parent,flags=QtCore.Qt.Dialog):
+class NcPropertiesDialog(QtGui.QDialog):
+    def __init__(self,item,parent,flags=QtCore.Qt.Dialog):
         QtGui.QDialog.__init__(self,parent,flags)
-        layout = QtGui.QGridLayout()
-        irow = 0
-        
-        nc = store.getcdf()
+        layout = QtGui.QVBoxLayout()
 
-        # Show dimensions
-        lab = QtGui.QLabel('Dimensions:',self)
-        layout.addWidget(lab,irow,0,1,3)
-        irow += 1
-        ncdims = store.getDimensions()
-        for dim in ncdims:
-            description = []
-            
-            # Get the length of the dimension, and find out whether it is unlimited.
-            length = nc.dimensions[dim]
-            isunlimited = length is None
-            if not (length is None or isinstance(length,int)):
-                # NetCDF4 uses dimension objects.
-                isunlimited = length.isunlimited()
-                length = len(length)
-            elif isunlimited:
-                # NetCDF3: locate length of unlimited dimension manually.
-                for vn in nc.variables.keys():
-                    v = nc.variables[vn]
-                    if dim in v.dimensions:
-                        curdims = list(v.dimensions)
-                        length = v.shape[curdims.index(dim)]
-                        break
-                        
-            # Add info on this dimension
-            if isunlimited:
-                description.append('length = UNLIMITED (currently %i)' % length)
-            else:
-                description.append('length = %i' % length)
-            if dim in store.reassigneddims:
-                description.append('coordinate variable: %s' % store.reassigneddims[dim])
+        def createList(parent,rows,headers):
+            list = QtGui.QTreeWidget(self)
+            list.setUniformRowHeights(True)
+            list.setSortingEnabled(True)
+            list.sortByColumn(-1,QtCore.Qt.AscendingOrder)
+            list.addTopLevelItems([QtGui.QTreeWidgetItem(items) for items in rows])
+            list.setHeaderLabels(headers)
+            list.header().setMovable(False)
+            list.setColumnCount(len(headers))
+            for i in range(len(headers)): list.resizeColumnToContents(i)
+            list.setRootIsDecorated(False)
+            list.setMaximumHeight(len(rows)*list.rowHeight(list.indexFromItem(list.topLevelItem(0)))
+                                  +list.header().height()
+                                  +2*list.frameWidth()
+                                  +list.horizontalScrollBar().height())
+            return list
                 
-            # Add GUI controls
-            labk = QtGui.QLabel(dim,self)
-            labv = QtGui.QLabel(', '.join(description),self)
-            layout.addWidget(labk,irow,0)
-            layout.addWidget(labv,irow,1)
-            irow += 1
-            
-        layout.setRowMinimumHeight(irow,10)
-        irow += 1
-
-        # Show attributes
-        props = xmlplot.data.getNcAttributes(nc)
-        if props:
-            lab = QtGui.QLabel('Global NetCDF attributes:',self)
-            layout.addWidget(lab,irow,0,1,3)
-            irow += 1
-            for k in sorted(props,key=lambda x: x.lower()):
-                v = getattr(nc,k)
-                labk = QtGui.QLabel(k,self)
-                labv = QtGui.QLabel(str(v),self)
-                layout.addWidget(labk,irow,0)
-                layout.addWidget(labv,irow,1)
-                irow += 1
-        else:
-            lab = QtGui.QLabel('This NetCDF file has no global attributes.',self)
-            layout.addWidget(lab,irow,0,1,3)
-            irow += 1
-            
-        # Add buttons
-        bnLayout = QtGui.QHBoxLayout()
-        bnOk = QtGui.QPushButton('OK',self)
-        self.connect(bnOk, QtCore.SIGNAL('clicked()'), self.accept)
-        bnLayout.addStretch(1)
-        bnLayout.addWidget(bnOk)
-        layout.addLayout(bnLayout,irow+1,0,1,3)
-        
-        # Set stretching row and column
-        layout.setColumnStretch(2,1)
-        layout.setRowStretch(irow,1)
-        
-        self.setLayout(layout)
-        self.setWindowTitle('NetCDF properties')
-        self.setMinimumWidth(200)
-
-class NcVariablePropertiesDialog(QtGui.QDialog):
-    def __init__(self,variable,parent,flags=QtCore.Qt.Dialog):
-        QtGui.QDialog.__init__(self,parent,flags)
-        layout = QtGui.QGridLayout()
-        irow = 0
-        
         # Show dimensions
-        dims = variable.getDimensions()
-        if dims:
-            shape = variable.getShape()
-            assert shape is not None,'getShape returned None.'
-            lab = QtGui.QLabel('NetCDF dimensions:',self)
-            layout.addWidget(lab,irow,0,1,3)
-            irow += 1
-            for dim,length in zip(dims,shape):
-                labk = QtGui.QLabel(dim,self)
-                labv = QtGui.QLabel('length = %i' % length,self)
-                layout.addWidget(labk,irow,0)
-                layout.addWidget(labv,irow,1)
-                irow += 1
-        else:
-            lab = QtGui.QLabel('This NetCDF variable has no dimensions.',self)
-            layout.addWidget(lab,irow,0,1,3)
-            irow += 1
+        dimnames = item.getDimensions()
+        if dimnames:
+            lab = QtGui.QLabel('Dimensions:',self)
+            layout.addWidget(lab)
+            hasunlimited = False
+            if isinstance(item,xmlplot.common.VariableStore):
+                rows = []
+                labels = ('name','length','coordinate variable')
+                for dimname in dimnames:
+                    items = [dimname,'','']
 
-        layout.setRowMinimumHeight(irow,10)
-        irow += 1
+                    # Get the length of the dimension, and find out whether it is unlimited.
+                    length,isunlimited = item.getDimensionLength(dimname)
+                                
+                    # Add info on this dimension
+                    hasunlimited |= isunlimited
+                    items[1] = str(length)
+                    if isunlimited: items[1] += '*'
+                    if dimname in item.reassigneddims:
+                        items[2] = item.reassigneddims[dimname]
+                        
+                    rows.append(items)
+            else:
+                labels = ('name','length')
+                rows = map(list,zip(dimnames,map(str,item.getShape())))
 
-        lab = QtGui.QLabel('NetCDF data type: %s' % variable.getDataType(),self)
-        layout.addWidget(lab,irow,0,1,3)
-        irow += 1
-            
-        layout.setRowMinimumHeight(irow,10)
-        irow += 1
+            self.listDimensions = createList(self,rows,labels)
+            layout.addWidget(self.listDimensions)
+            if hasunlimited:
+                lab = QtGui.QLabel('* This dimension is unlimited. It can grow as required.',self)
+                layout.addWidget(lab)
+
+            layout.addSpacing(10)
+        elif isinstance(item,xmlplot.common.Variable):
+            lab = QtGui.QLabel('This variable is a scalar.')
+            layout.addWidget(lab)
+            layout.addSpacing(10)
+
+        if isinstance(item,xmlplot.common.Variable):
+            lab = QtGui.QLabel('Data type: %s' % numpy.dtype(item.getDataType()).name,self)
+            layout.addWidget(lab)
+            layout.addSpacing(10)
 
         # Show attributes
-        props = variable.getProperties()
+        props = item.getProperties()
         if props:
-            lab = QtGui.QLabel('NetCDF attributes:',self)
-            layout.addWidget(lab,irow,0,1,3)
-            irow += 1
-            for k in sorted(props.iterkeys(),key=lambda x: x.lower()):
-                v = props[k]
-                labk = QtGui.QLabel(k,self)
-                labv = QtGui.QLabel(str(v),self)
-                layout.addWidget(labk,irow,0)
-                layout.addWidget(labv,irow,1)
-                irow += 1
+            lab = QtGui.QLabel('Attributes:',self)
+            layout.addWidget(lab)
+            keys = sorted(props.keys(),key=lambda x: x.lower())
+            self.listProperties = createList(self,[(k,unicode(props[k])) for k in keys],('name','value'))
+            layout.addWidget(self.listProperties)
         else:
-            lab = QtGui.QLabel('This NetCDF variable has no attributes.',self)
-            layout.addWidget(lab,irow,0,1,3)
-            irow += 1
+            lab = QtGui.QLabel('This file has no global attributes.',self)
+            layout.addWidget(lab)
             
         # Add buttons
         bnLayout = QtGui.QHBoxLayout()
@@ -704,14 +648,13 @@ class NcVariablePropertiesDialog(QtGui.QDialog):
         self.connect(bnOk, QtCore.SIGNAL('clicked()'), self.accept)
         bnLayout.addStretch(1)
         bnLayout.addWidget(bnOk)
-        layout.addLayout(bnLayout,irow+1,0,1,3)
-        
-        # Set stretching row and column
-        layout.setColumnStretch(2,1)
-        layout.setRowStretch(irow,1)
+        layout.addLayout(bnLayout)
         
         self.setLayout(layout)
-        self.setWindowTitle('Properties for variable %s' % variable.getName())
+        if isinstance(item,xmlplot.common.Variable):
+            self.setWindowTitle('Properties for variable %s' % item.getName())
+        else:
+            self.setWindowTitle('File properties')
         self.setMinimumWidth(200)
 
 class ReassignDialog(QtGui.QDialog):
@@ -963,6 +906,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         bar = self.menuBar()
         self.menuFile = bar.addMenu('File')
         self.menuFile.addAction(xmlplot.gui_qt4.getIcon('fileopen.png'),'Open...',self.onFileOpen,QtGui.QKeySequence.Open)
+        #self.menuFile.addAction('Open Link...',self.onLinkOpen)
         self.menuRecentFile = self.menuFile.addMenu('Open Recent')
         self.menuFile.addAction(xmlplot.gui_qt4.getIcon('exit.png'),'Exit',self.close,QtGui.QKeySequence.Quit)
         self.menuFile.addSeparator()
@@ -998,7 +942,7 @@ class VisualizeDialog(QtGui.QMainWindow):
             act.setStatusTip(path)
         
     def onFileOpen(self):
-        """Called when the user clicks "open" in the "File" menu.
+        """Called when the user clicks "Open..." in the "File" menu.
         """
         filter = 'NetCDF files (*.nc);;All files (*.*)'
         paths = QtGui.QFileDialog.getOpenFileNames(self,'',os.path.dirname(self.lastpath),filter)
@@ -1006,6 +950,17 @@ class VisualizeDialog(QtGui.QMainWindow):
         if not paths: return
         if len(paths)==1: paths = paths[0]
         self.load(paths)
+
+    def onLinkOpen(self):
+        """Called when the user clicks "Open Link..." in the "File" menu.
+        """
+        path = 'http://data.nodc.noaa.gov/thredds/dodsC/woa/WOA09/NetCDFdata/temperature_annual_1deg.nc.info'
+        path = 'http://data.nodc.noaa.gov/thredds/catalog/woa/WOA09/NetCDFdata/catalog.html?dataset=woa/WOA09/NetCDFdata/temperature_annual_1deg.nc'
+        path = 'http://www.esrl.noaa.gov/psd/thredds/dodsC/Datasets/noaa.oisst.v2/sst.mnmean.nc'
+        path = 'http://data.nodc.noaa.gov/thredds/dodsC/woa/WOA09/NetCDFdata/temperature_annual_1deg.nc'
+        path = 'http://dtvirt5.deltares.nl:8080/thredds/dodsC/opendap/rijkswaterstaat/jarkus/profiles/transect.nc'
+        path = 'http://megara.tamu.edu:8080/thredds/dodsC/mch_outputs/ngom_24h/mch_his_ngom_24h_2008.nc'
+        self.load(path)
         
     def onEditOptions(self):
         dlg = QtGui.QDialog(self,QtCore.Qt.Dialog|QtCore.Qt.CustomizeWindowHint|QtCore.Qt.WindowTitleHint|QtCore.Qt.WindowCloseButtonHint)
@@ -1198,7 +1153,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         # Build and show the context menu
         menu = QtGui.QMenu(self)
         actReassign,actClose,actProperties = None,None,None
-        if isinstance(item,(xmlplot.data.NetCDFStore,xmlplot.common.Variable)):
+        if isinstance(item,(xmlplot.common.VariableStore,xmlplot.common.Variable)):
             actProperties = menu.addAction('Properties...')
         if isinstance(item,xmlplot.common.VariableStore):
             actReassign = menu.addAction('Reassign coordinates...')
@@ -1209,10 +1164,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         
         # Interpret and execute the action chosen in the menu.
         if actChosen is actProperties:
-            if isinstance(item,xmlplot.common.Variable):
-                dialog = NcVariablePropertiesDialog(item,parent=self,flags=QtCore.Qt.CustomizeWindowHint|QtCore.Qt.Dialog|QtCore.Qt.WindowTitleHint)
-            else:
-                dialog = NcFilePropertiesDialog(item,parent=self,flags=QtCore.Qt.CustomizeWindowHint|QtCore.Qt.Dialog|QtCore.Qt.WindowTitleHint)
+            dialog = NcPropertiesDialog(item,parent=self,flags=QtCore.Qt.CustomizeWindowHint|QtCore.Qt.Dialog|QtCore.Qt.WindowTitleHint|QtCore.Qt.WindowCloseButtonHint)
             dialog.exec_()
         elif actChosen is actReassign:
             self.onReassignCoordinates(item)
