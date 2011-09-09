@@ -71,7 +71,8 @@ def main():
     parser.add_option('-H','--height',   type='float', help=optparse.SUPPRESS_HELP)
     parser.add_option('-t','--title',    type='string',help=optparse.SUPPRESS_HELP)
 
-    options,args = parser.parse_args()
+    enc = sys.getfilesystemencoding()
+    options,args = parser.parse_args([a.decode(enc) for a in sys.argv[1:]])
 
     if options.figurexml is None and not options.expressions:
         print 'No data to plot specified via -e or -x switch. Exiting.'
