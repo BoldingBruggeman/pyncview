@@ -10,6 +10,40 @@ def printVersion(option, opt, value, parser):
     for n,v in xmlplot.common.getVersions(): print '%s: %s' % (n,v)
     sys.exit(0)
 
+def get_argv():
+    """Uses shell32.GetCommandLineArgvW to get sys.argv as a list of Unicode
+    strings.
+
+    Versions 2.x of Python don't support Unicode in sys.argv on
+    Windows, with the underlying Windows API instead replacing multi-byte
+    characters with '?'.
+    
+    Taken from http://code.activestate.com/recipes/572200/
+    """
+    if sys.platform=='win32':
+        try:
+            from ctypes import POINTER, byref, cdll, c_int, windll
+            from ctypes.wintypes import LPCWSTR, LPWSTR
+
+            GetCommandLineW = cdll.kernel32.GetCommandLineW
+            GetCommandLineW.argtypes = []
+            GetCommandLineW.restype = LPCWSTR
+
+            CommandLineToArgvW = windll.shell32.CommandLineToArgvW
+            CommandLineToArgvW.argtypes = [LPCWSTR, POINTER(c_int)]
+            CommandLineToArgvW.restype = POINTER(LPWSTR)
+
+            cmd = GetCommandLineW()
+            argc = c_int(0)
+            argv = CommandLineToArgvW(cmd, byref(argc))
+            if argc.value > 0:
+                # Remove Python executable and commands if present
+                start = argc.value - len(sys.argv)
+                return [argv[i] for i in xrange(start, argc.value)]
+        except:
+            pass
+    return [a.decode(sys.getfilesystemencoding()) for a in sys.argv]
+
 def main():
     """Parses command line, creates multiplot.Plotter object, and calls plot.
     """
@@ -71,8 +105,7 @@ def main():
     parser.add_option('-H','--height',   type='float', help=optparse.SUPPRESS_HELP)
     parser.add_option('-t','--title',    type='string',help=optparse.SUPPRESS_HELP)
 
-    enc = sys.getfilesystemencoding()
-    options,args = parser.parse_args([a.decode(enc) for a in sys.argv[1:]])
+    options,args = parser.parse_args(get_argv()[1:])
 
     if options.figurexml is None and not options.expressions:
         print 'No data to plot specified via -e or -x switch. Exiting.'
