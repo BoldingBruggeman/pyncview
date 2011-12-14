@@ -1402,7 +1402,7 @@ class VisualizeDialog(QtGui.QMainWindow):
                     curvarname = self.addSliceSpec(basevarname,basevar,slices=curslices)
                     curvar = self.store.getExpression(curvarname)
                     curvardata = curvar.getSlice([slice(None)]*len(slabdims))
-                    if isinstance(curvardata,(list,tuple)): curvardata = curvardata[0]
+                    while isinstance(curvardata,(list,tuple)): curvardata = curvardata[0]
                     vmin,vmax = [],[]
                     for idim in range(len(slabdims)):
                         vmin.append(curvardata.coords_stag[idim].min())
