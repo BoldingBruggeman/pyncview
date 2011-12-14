@@ -1335,6 +1335,7 @@ class VisualizeDialog(QtGui.QMainWindow):
                 if var.getDimensionInfo(dim).get('datatype','float')=='datetime':
                     return xmlplot.common.num2date(meanval).strftime(fmt)
                 else:
+                    if numpy.ma.getmask(meanval): meanval = numpy.nan
                     return fmt % meanval
             except:
                 raise
