@@ -639,8 +639,8 @@ class NcPropertiesDialog(QtGui.QDialog):
                     hasunlimited |= isunlimited
                     items[1] = str(length)
                     if isunlimited: items[1] += '*'
-                    if dimname in item.reassigneddims:
-                        items[2] = item.reassigneddims[dimname]
+                    if dimname in item.defaultcoordinates:
+                        items[2] = item.defaultcoordinates[dimname]
                         
                     rows.append(items)
             else:
@@ -711,7 +711,7 @@ class ReassignDialog(QtGui.QDialog):
             added = []
             for vn in sorted(vars.iterkeys(),key=lambda x: x.lower()):
                 v = vars[vn]
-                if dim in v.getDimensions_raw(reassign=False):
+                if dim in v.getDimensions():
                     added.append(vn)
                     title = v.getLongName()
                     if vn!=title: title += ' (%s)' % vn
@@ -759,7 +759,7 @@ class ReassignDialog(QtGui.QDialog):
             options = []
             for i in range(combo.count()):
                 options.append(str(combo.itemData(i).toString()))
-            dim = self.store.reassigneddims.get(dim,dim)
+            dim = self.store.defaultcoordinates.get(dim,dim)
             try:
                 sel = options.index(dim)
             except:
@@ -771,9 +771,9 @@ class ReassignDialog(QtGui.QDialog):
         for dim,combo in self.dim2combo.iteritems():
             var = str(combo.itemData(combo.currentIndex()).toString())
             if var==dim:
-                if dim in self.store.reassigneddims: del self.store.reassigneddims[dim]
+                if dim in self.store.defaultcoordinates: del self.store.defaultcoordinates[dim]
             else:
-                self.store.reassigneddims[dim] = var
+                self.store.defaultcoordinates[dim] = var
         return QtGui.QDialog.accept(self)
         
     def onResetToDefault(self):
@@ -781,7 +781,7 @@ class ReassignDialog(QtGui.QDialog):
         self.selectComboValues()
 
     def onResetRemoveAll(self):
-        self.store.reassigneddims = {}
+        self.store.defaultcoordinates = {}
         self.selectComboValues()
 
 class NcTreeWidget(QtGui.QTreeWidget):
