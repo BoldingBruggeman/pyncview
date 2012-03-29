@@ -10,16 +10,8 @@ import sys,os,os.path,optparse,math,re,xml.dom.minidom,warnings
 # Ignore DeprecationWarnings, which are interesting for developers only.
 warnings.simplefilter('ignore', DeprecationWarning)
 
-# Configure MatPlotLib backend and numerical library.
-# (should be done before any modules that use MatPlotLib are loaded)
-import matplotlib
-#matplotlib.rcParams['numerix'] = 'numpy'
-matplotlib.use('Qt4Agg')
-
+# Import third-party Python modules.
 import numpy
-
-# Import PyQt libraries
-from PyQt4 import QtCore,QtGui
 
 # Get GOTM-GUI directory from environment.
 if not hasattr(sys,'frozen'):
@@ -38,19 +30,30 @@ if not hasattr(sys,'frozen'):
     path = sys.path[:] 
     sys.path.append(gotmguiroot)
 else:
-    gotmguiroot = '.'
-    import mpl_toolkits.basemap
-
     rootdir = os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding()))
-    mpl_toolkits.basemap.basemap_datadir = os.path.join(rootdir,'basemap-data')
+    gotmguiroot = '.'
 
-# Import remaining GOTM-GUI modules
+# Import PyQt libraries
 try:
-    import xmlplot.data,xmlplot.plot,xmlplot.gui_qt4,xmlplot.expressions,xmlstore.gui_qt4,errortrap
+    from xmlstore.qt_compat import QtCore,QtGui,mpl_qt4_backend,qt4_backend,qt4_backend_version
 except ImportError,e:
     print 'Unable to import GOTM-GUI libraries from "%s": %s. Please ensure that environment variable GOTMDIR or GOTMGUIDIR is set to the correct path.' % (gotmguiroot,e)
     sys.exit(1)
-    
+
+# Configure MatPlotLib backend..
+# (should be done before any modules that use MatPlotLib are loaded)
+import matplotlib
+matplotlib.rcParams['backend.qt4'] = mpl_qt4_backend
+matplotlib.use('Qt4Agg')
+
+# Override basemap data directory if running from binary distribution.
+if hasattr(sys,'frozen'):
+    import mpl_toolkits.basemap
+    mpl_toolkits.basemap.basemap_datadir = os.path.join(rootdir,'basemap-data')
+
+# Import remaining GOTM-GUI modules
+import xmlplot.data,xmlplot.plot,xmlplot.gui_qt4,xmlplot.expressions,xmlstore.gui_qt4,errortrap
+   
 def printVersion(option, opt, value, parser):
     print r'$LastChangedRevision$'.strip('$')
     print r'$LastChangedDate$'.strip('$')
@@ -199,7 +202,7 @@ class AboutDialog(QtGui.QDialog):
         versions = []
         versions.append(('Python','%i.%i.%i %s %i' % tuple(sys.version_info)))
         versions.append(('Qt4',QtCore.qVersion()))
-        versions.append(('PyQt4',QtCore.PYQT_VERSION_STR))
+        versions.append((qt4_backend,qt4_backend_version))
         versions.append(('numpy',numpy.__version__))
         versions.append(('matplotlib',matplotlib.__version__))
         try:
@@ -428,8 +431,10 @@ class AnimationController(QtGui.QWidget):
            
 class SliceWidget(QtGui.QWidget):
 
+    setAxesBounds = QtCore.Signal(object)
+
     def __init__(self,parent=None,variable=None,figure=None,defaultslices=None,dimnames=None,animatecallback=None):
-        QtGui.QDialog.__init__(self,parent)
+        super(SliceWidget,self).__init__(parent)
         
         assert variable is not None,'Variable must be specified.'
         
@@ -472,7 +477,7 @@ class SliceWidget(QtGui.QWidget):
             # Add animate button unless the dimension has length 1.
             bnAnimate = None
             if shape is not None and shape[i]>1:
-                bnAnimate = QtGui.QPushButton(xmlplot.gui_qt4.getIcon('agt_multimedia.png'),QtCore.QString(),self)
+                bnAnimate = QtGui.QPushButton(xmlplot.gui_qt4.getIcon('agt_multimedia.png'),None,self)
                 layout.addWidget(bnAnimate,i+1,2)
                 self.connect(bnAnimate,QtCore.SIGNAL('clicked()'), self.onAnimate)
 
@@ -557,7 +562,7 @@ class SliceWidget(QtGui.QWidget):
         self.windowAnimate.move(pos)
 
     def onAxesBounds(self,dim=None):
-        self.emit(QtCore.SIGNAL('setAxesBounds(PyQt_PyObject)'),dim)
+        self.setAxesBounds.emit(dim)
 
     def onCheckChanged(self,state=None):
         sliceddims = []
@@ -673,7 +678,10 @@ class NcPropertiesDialog(QtGui.QDialog):
             self.listProperties = createList(self,[(k,unicode(props[k])) for k in keys],('name','value'))
             layout.addWidget(self.listProperties)
         else:
-            lab = QtGui.QLabel('This file has no global attributes.',self)
+            if isinstance(item,xmlplot.common.Variable):
+                lab = QtGui.QLabel('This variable has no attributes.',self)
+            else:
+                lab = QtGui.QLabel('This file has no global attributes.',self)
             layout.addWidget(lab)
             
         # Add buttons
@@ -715,9 +723,9 @@ class ReassignDialog(QtGui.QDialog):
                     added.append(vn)
                     title = v.getLongName()
                     if vn!=title: title += ' (%s)' % vn
-                    combo.addItem(title,QtCore.QVariant(vn))
+                    combo.addItem(title,vn)
             if dim not in added:
-                combo.addItem(dim,QtCore.QVariant(dim))
+                combo.addItem(dim,dim)
             layout.addWidget(labk,irow,0)
             layout.addWidget(combo,irow,1)
             irow += 1
@@ -758,7 +766,7 @@ class ReassignDialog(QtGui.QDialog):
         for dim,combo in self.dim2combo.iteritems():
             options = []
             for i in range(combo.count()):
-                options.append(str(combo.itemData(i).toString()))
+                options.append(combo.itemData(i))
             dim = self.store.defaultcoordinates.get(dim,dim)
             try:
                 sel = options.index(dim)
@@ -769,7 +777,7 @@ class ReassignDialog(QtGui.QDialog):
         
     def accept(self):
         for dim,combo in self.dim2combo.iteritems():
-            var = str(combo.itemData(combo.currentIndex()).toString())
+            var = combo.itemData(combo.currentIndex())
             if var==dim:
                 if dim in self.store.defaultcoordinates: del self.store.defaultcoordinates[dim]
             else:
@@ -868,11 +876,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         browserlayout.addWidget(self.tree)
         #browserlayout.addWidget(self.bnAddExpression)
 
-        try:
-            # Try-except because versions of Qt4 < 4.3 did not support this attribute
-            browserlayout.setContentsMargins(0,0,0,0)
-        except AttributeError:
-            pass
+        browserlayout.setContentsMargins(0,0,0,0)
 
         self.setWindowTitle('PyNcView')
         
@@ -962,26 +966,25 @@ class VisualizeDialog(QtGui.QMainWindow):
         """Updates the list of Most Recently Used files at the bottom of the "File" menu.
         """
         self.menuRecentFile.clear()
-        
-        class MRUTrigger:
-            def __init__(self,path,target):
-                self.path = path
-                self.target = target
-            def __call__(self):
-                self.target(self.path)
-                
-        for i,node in enumerate(self.settings['Paths/MostRecentlyUsed'].children):
+        for node in self.settings['Paths/MostRecentlyUsed'].children:
             path = node.getValue()
-            act = self.menuRecentFile.addAction(os.path.basename(path),MRUTrigger(path,self.load))
+            act = self.menuRecentFile.addAction(os.path.basename(path),self.onMRUClicked)
+            act.setData(path)
             act.setStatusTip(path)
+
+    def onMRUClicked(self):
+        """Called when the user clicks a Most Recently Used file in the "File" menu.
+        """
+        path = self.sender().data()
+        self.load(path)
         
     def onFileOpen(self):
         """Called when the user clicks "Open..." in the "File" menu.
         """
         filter = 'NetCDF files (*.nc);;All files (*.*)'
-        paths = QtGui.QFileDialog.getOpenFileNames(self,'',os.path.dirname(self.lastpath),filter)
-        paths = map(unicode,paths)
+        paths,filter = QtGui.QFileDialog.getOpenFileNamesAndFilter(self,'',os.path.dirname(self.lastpath),filter)
         if not paths: return
+        paths = map(unicode,paths)
         if len(paths)==1: paths = paths[0]
         self.load(paths)
 
@@ -1070,13 +1073,13 @@ class VisualizeDialog(QtGui.QMainWindow):
         curstorenames = []
         for i in range(self.tree.topLevelItemCount()):
             curnode = self.tree.topLevelItem(i)
-            curpath = unicode(curnode.data(0,QtCore.Qt.UserRole+1).toString())
+            curpath = unicode(curnode.data(0,QtCore.Qt.UserRole+1))
             if path==curpath:
                 self.tree.clearSelection()
                 curnode.setSelected(True)
                 QtGui.QMessageBox.information(self,'Already open','"%s" has already been opened.' % path)
                 return
-            curstorenames.append(unicode(curnode.data(0,QtCore.Qt.UserRole).toString()))
+            curstorenames.append(unicode(curnode.data(0,QtCore.Qt.UserRole)))
 
         # Try to load the NetCDF file.
         try:
@@ -1111,8 +1114,8 @@ class VisualizeDialog(QtGui.QMainWindow):
             
         # Create root node for this file
         fileroot = QtGui.QTreeWidgetItem([storename],QtGui.QTreeWidgetItem.Type)
-        fileroot.setData(0,QtCore.Qt.UserRole,QtCore.QVariant(storename))
-        fileroot.setData(0,QtCore.Qt.UserRole+1,QtCore.QVariant(path))
+        fileroot.setData(0,QtCore.Qt.UserRole,storename)
+        fileroot.setData(0,QtCore.Qt.UserRole+1,path)
         fileroot.setToolTip(0,path)
 
         # Function for comparing dimension sets
@@ -1126,12 +1129,12 @@ class VisualizeDialog(QtGui.QMainWindow):
             vars = dim2var[dims]
             nodename = ','.join(dims)
             if nodename=='': nodename = '[none]'
-            curdimroot = QtGui.QTreeWidgetItem(QtCore.QStringList([nodename]),QtGui.QTreeWidgetItem.Type)
+            curdimroot = QtGui.QTreeWidgetItem([nodename],QtGui.QTreeWidgetItem.Type)
             items = []
             for variable in sorted(vars,cmp=lambda x,y: cmp(x.getLongName().lower(),y.getLongName().lower())):
                 varname, longname = variable.getName(),variable.getLongName()
-                item = QtGui.QTreeWidgetItem(QtCore.QStringList([longname]),QtGui.QTreeWidgetItem.Type)
-                item.setData(0,QtCore.Qt.UserRole,QtCore.QVariant('%s[\'%s\']' % (storename,varname)))
+                item = QtGui.QTreeWidgetItem([longname],QtGui.QTreeWidgetItem.Type)
+                item.setData(0,QtCore.Qt.UserRole,'%s[\'%s\']' % (storename,varname))
                 curdimroot.addChild(item)
             if curdimroot.childCount()>0: fileroot.addChild(curdimroot)
             
@@ -1158,9 +1161,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         if selected[0].parent() is None: return None
         
         # Get name and path of variable about to be shown.
-        userdata = selected[0].data(0,QtCore.Qt.UserRole)
-        if not userdata.isValid(): return None
-        return str(userdata.toString())
+        return selected[0].data(0,QtCore.Qt.UserRole)
         
     def onSliceChanged(self,dimschanged):
         """Called when the slice specification changes in the slice widget.
@@ -1174,14 +1175,13 @@ class VisualizeDialog(QtGui.QMainWindow):
         index = self.tree.indexAt(point)
         
         # Get the internal expression (as opposed to the pretty name)
-        userdata = index.data(QtCore.Qt.UserRole)
+        varname = index.data(QtCore.Qt.UserRole)
         
         # If there is not internal expression, it is not variable or file (but a container only).
         # Return without showing the context menu.
-        if not userdata.isValid(): return
+        if varname is None: return
         
         # Get the selected variable
-        varname = str(userdata.toString())
         item = self.store[varname]
 
         # Build and show the context menu
@@ -1347,7 +1347,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         # Show wait cursor and progress dialog
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         
-        progdialog = QtGui.QProgressDialog('Examining data range...',QtCore.QString(),0,100,self,QtCore.Qt.Dialog|QtCore.Qt.WindowTitleHint)
+        progdialog = QtGui.QProgressDialog('Examining data range...',None,0,100,self,QtCore.Qt.Dialog|QtCore.Qt.WindowTitleHint)
         progdialog.setWindowModality(QtCore.Qt.WindowModal)
         progdialog.setWindowTitle('Please wait')
 
@@ -1560,7 +1560,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         if self.slicetab is not None: self.slicetab.close()
         self.slicetab = SliceWidget(None,var,figure=self.figurepanel.figure,defaultslices=self.defaultslices,dimnames=self.store.getVariableLongNames(),animatecallback=self.onAnimation)
         self.connect(self.slicetab, QtCore.SIGNAL('sliceChanged(bool)'), self.onSliceChanged)
-        self.connect(self.slicetab, QtCore.SIGNAL('setAxesBounds(PyQt_PyObject)'), self.setAxesBounds)
+        self.slicetab.setAxesBounds.connect(self.setAxesBounds)
         self.connect(self.slicetab,QtCore.SIGNAL('onRecord(PyQt_PyObject)'), self.onRecordAnimation)
         self.connect(self.slicetab,QtCore.SIGNAL('startAnimation()'), self.figurepanel.startAnimation)
         self.connect(self.slicetab,QtCore.SIGNAL('stopAnimation()'), self.figurepanel.stopAnimation)
@@ -1571,7 +1571,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         self.figurepanel.figure.setUpdating(oldupdating)
         
     def onVarDoubleClicked(self,item,column):
-        if item.parent()!=self.expressionroot: return
+        if item.parent() is not self.expressionroot: return
         self.editExpression(item)
         
     def onAnimation(self,dlg):
@@ -1596,7 +1596,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         dlg = BuildExpressionDialog(self,variables=self.store.getVariableLongNames(alllevels=True))
         
         if item is not None:
-            expression = str(item.data(0,QtCore.Qt.UserRole).toString())
+            expression = item.data(0,QtCore.Qt.UserRole)
             dlg.edit.setText(expression)
         
         valid = False
@@ -1616,8 +1616,8 @@ class VisualizeDialog(QtGui.QMainWindow):
                 self.tree.addTopLevelItem(self.expressionroot)
             item = QtGui.QTreeWidgetItem(QtGui.QTreeWidgetItem.Type)
             self.expressionroot.addChild(item)
-        item.setData(0,QtCore.Qt.DisplayRole,QtCore.QVariant(expression))
-        item.setData(0,QtCore.Qt.UserRole,QtCore.QVariant(expression))
+        item.setData(0,QtCore.Qt.DisplayRole,expression)
+        item.setData(0,QtCore.Qt.UserRole,expression)
         
         if not item.isSelected():
             self.allowupdates = False
