@@ -43,7 +43,7 @@ except ImportError,e:
 # Configure MatPlotLib backend..
 # (should be done before any modules that use MatPlotLib are loaded)
 import matplotlib
-matplotlib.rcParams['backend.qt4'] = mpl_qt4_backend
+#matplotlib.rcParams['backend.qt4'] = mpl_qt4_backend
 matplotlib.use('Qt4Agg')
 
 # Override basemap data directory if running from binary distribution.
