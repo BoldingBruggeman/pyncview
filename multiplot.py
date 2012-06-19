@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # Import standard (i.e., non GOTM-GUI) modules.
 import sys,os

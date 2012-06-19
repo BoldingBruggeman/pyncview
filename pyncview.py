@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # -------------------------------------------------------------------
 # Module import and configuration, plus command line parsing.
