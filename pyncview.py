@@ -944,7 +944,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         bar = self.menuBar()
         self.menuFile = bar.addMenu('File')
         self.menuFile.addAction(xmlplot.gui_qt4.getIcon('fileopen.png'),'Open...',self.onFileOpen,QtGui.QKeySequence.Open)
-        #self.menuFile.addAction('Open Link...',self.onLinkOpen)
+        self.menuFile.addAction('Open Link...',self.onLinkOpen)
         self.menuRecentFile = self.menuFile.addMenu('Open Recent')
         self.menuFile.addAction(xmlplot.gui_qt4.getIcon('exit.png'),'Exit',self.close,QtGui.QKeySequence.Quit)
         self.menuFile.addSeparator()
@@ -997,6 +997,8 @@ class VisualizeDialog(QtGui.QMainWindow):
         path = 'http://data.nodc.noaa.gov/thredds/dodsC/woa/WOA09/NetCDFdata/temperature_annual_1deg.nc'
         path = 'http://dtvirt5.deltares.nl:8080/thredds/dodsC/opendap/rijkswaterstaat/jarkus/profiles/transect.nc'
         path = 'http://megara.tamu.edu:8080/thredds/dodsC/mch_outputs/ngom_24h/mch_his_ngom_24h_2008.nc'
+        path,ok = QtGui.QInputDialog.getText(self,'Open DAP resource','URL:',QtGui.QLineEdit.Normal,path)
+        if not ok: return
         self.load(path)
         
     def onEditOptions(self):
