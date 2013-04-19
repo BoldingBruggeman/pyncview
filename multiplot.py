@@ -281,9 +281,9 @@ class Plotter(object):
                 res = xmlplot.data.open(path)
                 for old,new in self.reassign.iteritems():
                     if new=='':
-                        if old in res.reassigneddims: del res.reassigneddims[old]
+                        if old in res.defaultcoordinates: del res.defaultcoordinates[old]
                     else:
-                        res.reassigneddims[old] = new
+                        res.defaultcoordinates[old] = new
                 res.maskoutsiderange = self.maskoutsiderange
                 sources[path] = (sourcename,res)
             fig.addDataSource(sourcename,res)
