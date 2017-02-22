@@ -5,8 +5,8 @@ Basically it converts the PyNcView application directory ../dist as generated
 by "../setup.py py2exe" into a single Windows Installer MSI file, which can
 directly be executed on all recent versions of Windows.
 
-For this purpose the open-source Windows Installer XML (WIX) toolset is used,
-http://wix.sourceforge.net. This is a freely distributed, stand-alone program
+For this purpose the open-source [Windows Installer XML (WiX) toolset](http://wixtoolset.org).
+This is a freely distributed, stand-alone program
 (it does not require Visual Studio) that takes a XML-based description of an
 application setup and converts it into a single MSI file. Some Python
 (buildmsi.py) is used as well to enumerate all files in the application
