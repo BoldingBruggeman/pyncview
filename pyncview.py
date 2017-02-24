@@ -47,9 +47,9 @@ import matplotlib
 matplotlib.use('agg')
 
 # Override basemap data directory if running from binary distribution.
-if hasattr(sys,'frozen'):
-    import mpl_toolkits.basemap
-    mpl_toolkits.basemap.basemap_datadir = os.path.join(rootdir,'basemap-data')
+#KBif hasattr(sys,'frozen'):
+    #KBimport mpl_toolkits.basemap
+    #KBmpl_toolkits.basemap.basemap_datadir = os.path.join(rootdir,'basemap-data')
 
 # Import remaining GOTM-GUI modules
 import xmlplot.data,xmlplot.plot,xmlplot.gui_qt4,xmlplot.expressions,xmlstore.gui_qt4,errortrap
