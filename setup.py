@@ -1,9 +1,27 @@
 import sys,os
 
+import numpy
+
 # Windows finds the CRT in the side-by-side assembly store (SxS), but Python does not look there.
 # Therefore we add a location of the CRT to the Python path.
 sys.path.append('C:\\Program Files\\Microsoft Visual Studio 8\\VC\\redist\\x86\\Microsoft.VC80.CRT')
 sys.path.append('C:\\Program Files (x86)\\Microsoft Visual Studio 9.0\\VC\\redist\\x86\\Microsoft.VC90.CRT')
+sys.path.append('C:\\Program Files (x86)\\Common Files\\microsoft shared\\VSTO\\10.0')
+
+#http://stackoverflow.com/questions/36191770/py2exe-errno-2-no-such-file-or-directory-numpy-atlas-dll
+
+def numpy_dll_paths_fix():
+    paths = set()
+    np_path = numpy.__path__[0]
+    for dirpath, _, filenames in os.walk(np_path):
+        for item in filenames:
+            if item.endswith('.dll'):
+                paths.add(dirpath)
+
+    sys.path.append(*list(paths))
+
+numpy_dll_paths_fix()
+
 
 # win32com [Python for Windows extensions] makes additional submodules available
 # by modifying its __path__ attribute. Distutils cannot handle runtime modification
@@ -22,11 +40,11 @@ except ImportError:
 # ScientificPython makes additional [binary] modules available by modifying sys.path.
 # during import. Make this happen now, so that distutils can pick up these additional
 # modules at a later stage.
-try:
-    import Scientific
-except ImportError:
+#KBtry:
+    #KBimport Scientific
+#KBexcept ImportError:
     # ScientificPython not found. This is supported if another NetCDF module is available.
-    pass
+    #KBpass
 
 from distutils.core import setup
 import py2exe
@@ -62,6 +80,7 @@ own_data_files += xmlplot.common.get_py2exe_datafiles()
 import mpl_toolkits.basemap
 adddir(mpl_toolkits.basemap.basemap_datadir,'basemap-data')
 
+#own_data_files.append(('',['C:\\Program Files (x86)\\Common Files\\microsoft shared\\VSTO\\10.0']))
 #own_data_files.append(('',['C:\\Windows\\System32\\MSVCP71.dll']))
 #own_data_files.append(('',[os.path.join(os.environ['VS80COMNTOOLS'],'..\\..\\VC\\redist\\x86\\Microsoft.VC80.CRT\\MSVCR80.dll')]))
 #own_data_files.append(('',[os.path.join(os.environ['VS80COMNTOOLS'],'..\\..\\VC\\redist\\x86\\Microsoft.VC80.CRT\\Microsoft.VC80.CRT.manifest')]))
@@ -70,9 +89,9 @@ setup(
     windows=[{'script':'pyncview.py','icon_resources':[(0,'pyncview.ico')]}],
     console=[{'script':'multiplot.py'}],
     options={'py2exe': {
-                'packages' : ['matplotlib', 'pytz'],
+                'packages' : ['matplotlib','netCDF4', 'pytz'],
 #                'includes' : ['sip','PyQt4._qt'],
-                'includes' : ['sip','netCDF4_utils','netcdftime','ordereddict'],
+                'includes' : ['sip','netCDF4','netcdftime','ordereddict'],
                 'excludes' : ['_gtkagg', '_tkagg', '_wxagg','Tkconstants','Tkinter','tcl','wx','pynetcdf','cProfile','pstats','modeltest','pupynere','Scientific','scipy'],
                 'dll_excludes': ['libgdk-win32-2.0-0.dll', 'libgobject-2.0-0.dll', 'libgdk_pixbuf-2.0-0.dll','wxmsw26uh_vc.dll','tcl84.dll','tk84.dll','powrprof.dll'],
             }},
