@@ -1,9 +1,20 @@
 This directory contains everything needed to build a PyNcView installation
 package for Windows.
 
-Basically it converts the PyNcView application directory ../dist as generated
-by "../setup.py py2exe" into a single Windows Installer MSI file, which can
-directly be executed on all recent versions of Windows.
+Here comes the necessary steps do create a Windows installer.
+
+1. set PYTHONPATH=%PYTHONPATH%;$USERPROFILE%\Documents\GOTM\code\gui.py (assuming a standard install).
+2. python setup.py py2exe
+3. cd WiX
+4. python buildmsi.py <version> - version must be larger than what is listed in *lastversion.dat*
+
+The first point allows *python* to locate the *GOTM* contained python modules.
+
+The second point creates a ./dist directory containing a Windows application based on the PyNcView python code.
+
+The third point just enters the installer configuration directory.
+
+The fourth point creates the single Windows Installer MSI file based on the application in the ../dist directory.
 
 For this purpose the open-source [Windows Installer XML (WiX) toolset](http://wixtoolset.org).
 This is a freely distributed, stand-alone program
