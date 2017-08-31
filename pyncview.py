@@ -43,7 +43,7 @@ if hasattr(sys,'frozen'):
     mpl_toolkits.basemap.basemap_datadir = os.path.join(rootdir,'basemap-data')
 
 # Import remaining GOTM-GUI modules
-import xmlplot.data,xmlplot.plot,xmlplot.gui_qt4,xmlplot.expressions,xmlstore.gui_qt4,errortrap
+import xmlplot.data,xmlplot.plot,xmlplot.gui_qt4,xmlplot.expressions,xmlstore.gui_qt4,xmlplot.errortrap
    
 def printVersion(option, opt, value, parser):
     print r'$LastChangedRevision$'.strip('$')
@@ -186,7 +186,7 @@ class AboutDialog(QtGui.QDialog):
 
         layout = QtGui.QVBoxLayout()
 
-        self.label = QtGui.QLabel('PyNcView was developed by <a href="mailto:jorn.bruggeman@xs4all.nl">Jorn Bruggeman</a> from funding by <a href="http://www.bolding-burchard.com">Bolding & Burchard</a>.',self)
+        self.label = QtGui.QLabel('PyNcView is developed by <a href="http://www.bolding-bruggeman.com/">Bolding & Bruggeman ApS</a>, formerly Bolding & Burchard.',self)
         self.label.setOpenExternalLinks(True)
         layout.addWidget(self.label)
 
@@ -202,7 +202,6 @@ class AboutDialog(QtGui.QDialog):
         except: pass
         
         strversions = ''
-        if not hasattr(sys,'frozen'): strversions += 'GOTM-GUI libraries: %s<br><br>' % relguipath
 
         # Build table with module versions.
         strversions += 'Module versions:'
@@ -1669,7 +1668,7 @@ def main(options,args):
     dialog.show()
     
     # Redirect expections to Qt-based dialog.
-    errortrap.redirect_stderr('PyNcView','You may be able to continue working. However, we would appreciate it if you report this error. To do so, post a message to <a href="http://sourceforge.net/projects/pyncview/forums/forum/973008">the PyNcView forum</a> with the above error message, and the circumstances under which the error occurred.')
+    xmlplot.errortrap.redirect_stderr('PyNcView','You may be able to continue working. However, we would appreciate it if you report this error. To do so, post a message to <a href="http://sourceforge.net/projects/pyncview/forums/forum/973008">the PyNcView forum</a> with the above error message, and the circumstances under which the error occurred.')
     
     # Start application message loop
     ret = app.exec_()
