@@ -15,20 +15,11 @@ import numpy
 
 # Get GOTM-GUI directory from environment.
 if not hasattr(sys,'frozen'):
-    if 'GOTMGUIDIR' in os.environ:
-        relguipath = os.environ['GOTMGUIDIR']
-    elif 'GOTMDIR' in os.environ:
-        relguipath = os.path.join(os.environ['GOTMDIR'],'gui.py')
-    else:
-        print 'Cannot find GOTM-GUI directory. Please set environment variable "GOTMDIR" to the GOTM root (containing gui.py), or "GOTMGUIDIR" to the GOTM-GUI root, before running.'
-        sys.exit(1)
-
-    # Add the GOTM-GUI directory to the search path and import the common
-    # GOTM-GUI module (needed for command line parsing).
+    # Auto-discover xmlstore and xmlplot in bbpy directory structure
     rootdir = os.path.dirname(os.path.realpath(__file__))
-    gotmguiroot = os.path.join(rootdir,relguipath)
-    path = sys.path[:] 
-    sys.path.append(gotmguiroot)
+    path = sys.path[:]
+    sys.path.append(os.path.join(rootdir, '../xmlstore'))
+    sys.path.append(os.path.join(rootdir, '../xmlplot'))
 else:
     rootdir = os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding()))
     gotmguiroot = '.'
