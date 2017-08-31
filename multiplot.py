@@ -175,29 +175,19 @@ def importModules(verbose=True):
     #matplotlib.rcParams['numerix'] = 'numpy'
     matplotlib.use('Qt4Agg')
 
-    # Get GOTM-GUI directory from environment.
-    if 'GOTMGUIDIR' in os.environ:
-        relguipath = os.environ['GOTMGUIDIR']
-    elif 'GOTMDIR' in os.environ:
-        relguipath = os.environ['GOTMDIR']+'/gui.py'
-    else:
-        print 'Cannot find GOTM-GUI directory. Please set environment variable "GOTMDIR" to the GOTM root (containing gui.py), or "GOTMGUIDIR" to the GOTM-GUI root, before running.'
-        sys.exit(1)
-    if verbose:
-        print 'Getting GOTM-GUI libraries from "%s".' % relguipath
-
     # Add the GOTM-GUI directory to the search path and import the common
     # GOTM-GUI module (needed for command line parsing).
     path = sys.path[:] 
     if not hasattr(sys,'frozen'):
-        gotmguiroot = os.path.join(os.path.dirname(os.path.realpath(__file__)),relguipath)
-        sys.path.append(gotmguiroot)
+        rootdir = os.path.dirname(os.path.realpath(__file__))
+        sys.path.append(os.path.join(rootdir, '../xmlstore'))
+        sys.path.append(os.path.join(rootdir, '../xmlplot'))
 
     # Import remaining GOTM-GUI modules
     try:
         import xmlplot.data,xmlplot.plot,xmlplot.gui_qt4
     except ImportError,e:
-        print 'Unable to import GOTM-GUI libraries (%s). Please ensure that environment variable GOTMDIR or GOTMGUIDIR is set.' % e
+        print 'Unable to import xmlplot (%s). Please ensure that it is installed.' % e
         sys.exit(1)
         
     sys.path = path
