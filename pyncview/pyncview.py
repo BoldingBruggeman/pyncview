@@ -18,8 +18,8 @@ if not hasattr(sys,'frozen'):
     # Auto-discover xmlstore and xmlplot in bbpy directory structure
     rootdir = os.path.dirname(os.path.realpath(__file__))
     path = sys.path[:]
-    sys.path.append(os.path.join(rootdir, '../xmlstore'))
-    sys.path.append(os.path.join(rootdir, '../xmlplot'))
+    sys.path.append(os.path.join(rootdir, '../../xmlstore'))
+    sys.path.append(os.path.join(rootdir, '../../xmlplot'))
 else:
     rootdir = os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding()))
     gotmguiroot = '.'
@@ -27,8 +27,8 @@ else:
 # Import PyQt libraries
 try:
     from xmlstore.qt_compat import QtCore,QtGui,mpl_qt4_backend,qt4_backend,qt4_backend_version
-except ImportError,e:
-    print 'Unable to import GOTM-GUI libraries from "%s": %s. Please ensure that environment variable GOTMDIR or GOTMGUIDIR is set to the correct path.' % (gotmguiroot,e)
+except ImportError, e:
+    print 'Unable to import xmlstore (https://pypi.python.org/pypi/xmlstore) Try "pip install xmlstore". Error: %s' % e
     sys.exit(1)
 
 # Configure MatPlotLib backend..
@@ -43,7 +43,11 @@ if hasattr(sys,'frozen'):
     mpl_toolkits.basemap.basemap_datadir = os.path.join(rootdir,'basemap-data')
 
 # Import remaining GOTM-GUI modules
-import xmlplot.data,xmlplot.plot,xmlplot.gui_qt4,xmlplot.expressions,xmlstore.gui_qt4,xmlplot.errortrap
+try:
+    import xmlplot.data,xmlplot.plot,xmlplot.gui_qt4,xmlplot.expressions,xmlstore.gui_qt4,xmlplot.errortrap
+except ImportError, e:
+    print 'Unable to import xmlplot (https://pypi.python.org/pypi/xmlplot) Try "pip install xmlplot". Error: %s' % e
+    sys.exit(1)
    
 def printVersion(option, opt, value, parser):
     print r'$LastChangedRevision$'.strip('$')
@@ -139,9 +143,12 @@ class SettingsStore(xmlstore.xmlstore.TypedStore):
     @staticmethod    
     def getSettingsPath():
         if sys.platform == 'win32':
-            from win32com.shell import shellcon, shell
-            appdata = shell.SHGetFolderPath(0, shellcon.CSIDL_APPDATA, 0, 0)
-            return os.path.join(appdata,'PyNcView','settings.xml')
+            import ctypes.wintypes
+            CSIDL_APPDATA = 26
+            SHGFP_TYPE_CURRENT = 0
+            buf = ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
+            ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_APPDATA, None, SHGFP_TYPE_CURRENT, buf)
+            return os.path.join(buf.value, 'PyNcView', 'settings.xml')
         else:
             return os.path.expanduser('~/.pyncview')
 
@@ -1632,7 +1639,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         self.settings['WindowPosition/Width'].setValue(w)
         self.settings['WindowPosition/Height'].setValue(h)
         
-def main(options,args):
+def start(options, args):
     if options.nc is not None:
         if xmlplot.data.netcdf.selectednetcdfmodule is None: xmlplot.data.netcdf.chooseNetCDFModule()
         for xmlplot.data.netcdf.selectednetcdfmodule,(m,v) in enumerate(xmlplot.data.netcdf.netcdfmodules):
@@ -1678,7 +1685,7 @@ def main(options,args):
     
     return ret
 
-if __name__=='__main__':
+def main():
     # Parse command line options
     parser = optparse.OptionParser(description="""This utility may be used to visualize the
 contents of a NetCDF file.
@@ -1696,13 +1703,17 @@ environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
 
     if options.profile is not None:
         # We will do profiling
-        import cProfile,pstats
-        cProfile.run('main(options,args)', options.profile)
+        import cProfile
+        import pstats
+        cProfile.run('start(options, args)', options.profile)
         p = pstats.Stats(options.profile)
         p.strip_dirs().sort_stats('cumulative').print_stats()
     else:
         # Just enter the main loop
-        ret = main(options,args)
+        ret = start(options, args)
 
     # Exit
     sys.exit(ret)
+
+if __name__ == '__main__':
+    main()
