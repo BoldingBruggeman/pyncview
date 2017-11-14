@@ -161,7 +161,7 @@ def main():
 
 matplotlib = None
 xmlplot = None
-QtGui = None
+QtWidgets = None
 
 def importModules(verbose=True):
     global matplotlib,xmlplot
@@ -238,16 +238,16 @@ class Plotter(object):
             # We have to show figure in GUI.
 
             # Import PyQt libraries if not doen already.
-            global QtGui
-            if QtGui is None:
-                from PyQt4 import QtGui
+            global QtWidgets
+            if QtWidgets is None:
+                from xmlstore.qt_compat import QtWidgets
             
             # Start Qt if needed
-            createQApp = QtGui.QApplication.startingUp()
+            createQApp = QtWidgets.QApplication.startingUp()
             if createQApp:
-                app = QtGui.QApplication([' '])
+                app = QtWidgets.QApplication([' '])
             else:
-                app = QtGui.qApp
+                app = QtWidgets.qApp
 
             # Create figure dialog
             dialog = xmlplot.gui_qt4.FigureDialog(None,quitonclose=True)

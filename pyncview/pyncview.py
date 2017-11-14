@@ -26,7 +26,7 @@ else:
 
 # Import PyQt libraries
 try:
-    from xmlstore.qt_compat import QtCore,QtGui,mpl_qt4_backend,qt4_backend,qt4_backend_version
+    from xmlstore.qt_compat import QtCore,QtGui,QtWidgets,mpl_qt4_backend,qt4_backend,qt4_backend_version
 except ImportError, e:
     print 'Unable to import xmlstore (https://pypi.python.org/pypi/xmlstore) Try "pip install xmlstore". Error: %s' % e
     sys.exit(1)
@@ -187,13 +187,13 @@ class SettingsStore(xmlstore.xmlstore.TypedStore):
         newnode.setValue(nodevalue)
         
         
-class AboutDialog(QtGui.QDialog):
+class AboutDialog(QtWidgets.QDialog):
     def __init__(self,parent=None):
-        QtGui.QDialog.__init__(self,parent,QtCore.Qt.MSWindowsFixedSizeDialogHint|QtCore.Qt.CustomizeWindowHint|QtCore.Qt.WindowTitleHint)
+        QtWidgets.QDialog.__init__(self,parent,QtCore.Qt.MSWindowsFixedSizeDialogHint|QtCore.Qt.CustomizeWindowHint|QtCore.Qt.WindowTitleHint)
 
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
 
-        self.label = QtGui.QLabel('PyNcView is developed by <a href="http://www.bolding-bruggeman.com/">Bolding & Bruggeman ApS</a>, formerly Bolding & Burchard.',self)
+        self.label = QtWidgets.QLabel('PyNcView is developed by <a href="http://www.bolding-bruggeman.com/">Bolding & Bruggeman ApS</a>, formerly Bolding & Burchard.',self)
         self.label.setOpenExternalLinks(True)
         layout.addWidget(self.label)
 
@@ -226,16 +226,16 @@ class AboutDialog(QtGui.QDialog):
             strversions += '<tr><td>%s</td><td>&nbsp;</td><td>%s</td><td>&nbsp;</td><td>%s</td></tr>' % (m,v,act)
         strversions += '</table>'
 
-        self.labelVersions = QtGui.QLabel('Diagnostics:',self)
-        self.textVersions = QtGui.QTextEdit(strversions,self)
+        self.labelVersions = QtWidgets.QLabel('Diagnostics:',self)
+        self.textVersions = QtWidgets.QTextEdit(strversions,self)
         self.textVersions.setMaximumHeight(120)
         self.textVersions.setReadOnly(True)
         layout.addWidget(self.labelVersions)
         layout.addWidget(self.textVersions)
 
-        self.bnOk = QtGui.QPushButton('OK',self)
-        self.connect(self.bnOk, QtCore.SIGNAL('clicked()'), self.accept)
-        self.bnOk.setSizePolicy(QtGui.QSizePolicy.Fixed,QtGui.QSizePolicy.Fixed)
+        self.bnOk = QtWidgets.QPushButton('OK',self)
+        self.bnOk.clicked.connect(self.accept)
+        self.bnOk.setSizePolicy(QtWidgets.QSizePolicy.Fixed,QtWidgets.QSizePolicy.Fixed)
         layout.addWidget(self.bnOk,0,QtCore.Qt.AlignRight)
 
         self.setLayout(layout)
@@ -243,38 +243,38 @@ class AboutDialog(QtGui.QDialog):
         self.setWindowTitle('About PyNcView')
         self.setMinimumWidth(400)
 
-class BuildExpressionDialog(QtGui.QDialog):
+class BuildExpressionDialog(QtWidgets.QDialog):
     
     def __init__(self,parent=None,variables=None,stores=None):
-        QtGui.QDialog.__init__(self,parent)
+        QtWidgets.QDialog.__init__(self,parent)
         
         if variables is None: variables={}
         if stores    is None: stores={}
 
         self.variables,self.stores = variables,stores
         
-        self.label = QtGui.QLabel('Here you can enter an expression of variables.',self)
+        self.label = QtWidgets.QLabel('Here you can enter an expression of variables.',self)
         self.label.setWordWrap(True)
 
-        self.labelVariables = QtGui.QLabel('The following variables are available. You can insert a variable into the expression by double-clicking it.',self)
+        self.labelVariables = QtWidgets.QLabel('The following variables are available. You can insert a variable into the expression by double-clicking it.',self)
         self.labelVariables.setWordWrap(True)
 
-        self.treeVariables = QtGui.QTreeWidget(self)        
+        self.treeVariables = QtWidgets.QTreeWidget(self)        
         self.treeVariables.setColumnCount(2)
         self.treeVariables.setHeaderLabels(['variable','description'])
         self.treeVariables.setRootIsDecorated(False)
         self.treeVariables.setSortingEnabled(True)
         
-        self.edit = QtGui.QLineEdit(self)
+        self.edit = QtWidgets.QLineEdit(self)
 
-        self.bnOk = QtGui.QPushButton('OK',self)
-        self.bnCancel = QtGui.QPushButton('Cancel',self)
+        self.bnOk = QtWidgets.QPushButton('OK',self)
+        self.bnCancel = QtWidgets.QPushButton('Cancel',self)
         
-        self.connect(self.bnOk, QtCore.SIGNAL('clicked()'), self.accept)
-        self.connect(self.bnCancel, QtCore.SIGNAL('clicked()'), self.reject)
-        self.connect(self.treeVariables, QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem *,int)'), self.itemDoubleClicked)
+        self.bnOk.clicked.connect(self.accept)
+        self.bnCancel.clicked.connect(self.reject)
+        self.treeVariables.itemDoubleClicked.connect(self.itemDoubleClicked)
 
-        layout = QtGui.QGridLayout()
+        layout = QtWidgets.QGridLayout()
         layout.addWidget(self.label,0,0,1,2)
         layout.addWidget(self.labelVariables,1,0,1,2)
         layout.addWidget(self.treeVariables,2,0,1,2)
@@ -293,7 +293,7 @@ class BuildExpressionDialog(QtGui.QDialog):
     def setVariables(self):
         self.treeVariables.clear()
         for name,longname in self.variables.iteritems():
-            self.treeVariables.addTopLevelItem(QtGui.QTreeWidgetItem([name,longname]))
+            self.treeVariables.addTopLevelItem(QtWidgets.QTreeWidgetItem([name,longname]))
         self.treeVariables.sortItems(0,QtCore.Qt.AscendingOrder)
     
     def itemDoubleClicked(self,item,column):
@@ -303,14 +303,18 @@ class BuildExpressionDialog(QtGui.QDialog):
     def showEvent(self,event):
         self.edit.setFocus()
 
-class AnimateToolBar(QtGui.QToolBar):
+class AnimateToolBar(QtWidgets.QToolBar):
+    startAnimation = QtCore.Signal()
+    stopAnimation = QtCore.Signal()
+    onRecord = QtCore.Signal('PyQt_PyObject')
+
     def __init__(self,parent,dim,spin):
-        QtGui.QToolBar.__init__(self,parent)
+        QtWidgets.QToolBar.__init__(self,parent)
         
         self.setIconSize(QtCore.QSize(16,16))
 
-        labelStride = QtGui.QLabel('Stride:',self)
-        self.spinStride = QtGui.QSpinBox(self)
+        labelStride = QtWidgets.QLabel('Stride:',self)
+        self.spinStride = QtWidgets.QSpinBox(self)
         self.spinStride.setRange(1,spin.maximum()-spin.minimum())
 
         self.actBegin     = self.addAction(xmlplot.gui_qt4.getIcon('player_start.png'),'Move to begin',   self.onBegin)
@@ -323,16 +327,16 @@ class AnimateToolBar(QtGui.QToolBar):
         self.dim = dim
         self.spin = spin
         self.timer = QtCore.QTimer()
-        self.connect(self.timer, QtCore.SIGNAL('timeout()'), self.step)
+        self.timer.timeout.connect(self.step)
 
-        self.connect(self.spin, QtCore.SIGNAL('valueChanged(int)'), self.onSpinChanged)
+        self.spin.valueChanged.connect(self.onSpinChanged)
         self.onSpinChanged()
         
         self.group = []
         
     def hideEvent(self,event):
         self.ensureStop()
-        QtGui.QToolBar.hideEvent(self,event)
+        QtWidgets.QToolBar.hideEvent(self,event)
         
     def onBegin(self):
         self.ensureStop()
@@ -348,18 +352,18 @@ class AnimateToolBar(QtGui.QToolBar):
     def onPlayPause(self):
         if self.timer.isActive():
             self.timer.stop()
-            self.emit(QtCore.SIGNAL('stopAnimation()'))
+            self.stopAnimation.emit()
             self.actPlayPause.setIcon(xmlplot.gui_qt4.getIcon('player_play.png'))
             self.actPlayPause.setText('Play')
         else:
             for tb in self.group: tb.ensureStop()
-            self.emit(QtCore.SIGNAL('startAnimation()'))
+            self.startAnimation.emit()
             self.timer.start()
             self.actPlayPause.setIcon(xmlplot.gui_qt4.getIcon('player_pause.png'))
             self.actPlayPause.setText('Pause')
 
     def onRecord(self):
-        self.emit(QtCore.SIGNAL('onRecord(PyQt_PyObject)'),self.dim)
+        self.onRecord.emit(self.dim)
 
     def onSpinChanged(self,value=None):
         if value is None: value = self.spin.value()
@@ -372,38 +376,42 @@ class AnimateToolBar(QtGui.QToolBar):
         value = self.spin.value()
         if value==self.spin.maximum(): self.onPlayPause()
 
-class AnimationController(QtGui.QWidget):
+class AnimationController(QtWidgets.QWidget):
+    startAnimation = QtCore.Signal()
+    stopAnimation = QtCore.Signal()
+    onRecord = QtCore.Signal('PyQt_PyObject')
+
     def __init__(self,parent,dim,spin,callback=None):
-        QtGui.QWidget.__init__(self,parent,QtCore.Qt.Tool)
+        QtWidgets.QWidget.__init__(self,parent,QtCore.Qt.Tool)
         
         self.toolbar = AnimateToolBar(self,dim,spin)
-        self.connect(self.toolbar,QtCore.SIGNAL('onRecord(PyQt_PyObject)'), QtCore.SIGNAL('onRecord(PyQt_PyObject)'))
-        self.connect(self.toolbar,QtCore.SIGNAL('startAnimation()'), QtCore.SIGNAL('startAnimation()'))
-        self.connect(self.toolbar,QtCore.SIGNAL('stopAnimation()'),  QtCore.SIGNAL('stopAnimation()'))
+        self.toolbar.onRecord.connect(self.onRecord)
+        self.toolbar.startAnimation.connect(self.startAnimation)
+        self.toolbar.stopAnimation.connect(self.stopAnimation)
         
-        gridlayout = QtGui.QGridLayout()
+        gridlayout = QtWidgets.QGridLayout()
         
-        self.checkboxFormat = QtGui.QCheckBox('Dynamic title:',self)
+        self.checkboxFormat = QtWidgets.QCheckBox('Dynamic title:',self)
         self.checkboxFormat.setChecked(True)
-        self.editFormat = QtGui.QLineEdit(self)
-        self.connect(self.editFormat,QtCore.SIGNAL('editingFinished()'), self.onFormatChanged)
-        self.connect(self.checkboxFormat,QtCore.SIGNAL('clicked(bool)'), self.onFormatChanged)
+        self.editFormat = QtWidgets.QLineEdit(self)
+        self.editFormat.editingFinished.connect(self.onFormatChanged)
+        self.checkboxFormat.clicked.connect(self.onFormatChanged)
         gridlayout.addWidget(self.checkboxFormat,0,0)
         gridlayout.addWidget(self.editFormat,0,1,1,2)
         
-        lab1 = QtGui.QLabel('Target framerate:',self)
-        self.spinInterval = QtGui.QSpinBox(self)
+        lab1 = QtWidgets.QLabel('Target framerate:',self)
+        self.spinInterval = QtWidgets.QSpinBox(self)
         self.spinInterval.setRange(1,50)
         self.spinInterval.setSingleStep(1)
         self.spinInterval.setValue(24)
         self.onIntervalChanged(self.spinInterval.value())
-        self.connect(self.spinInterval,QtCore.SIGNAL('valueChanged(int)'), self.onIntervalChanged)
-        lab2 = QtGui.QLabel('fps',self)
+        self.spinInterval.valueChanged.connect(self.onIntervalChanged)
+        lab2 = QtWidgets.QLabel('fps',self)
         gridlayout.addWidget(lab1,1,0)
         gridlayout.addWidget(self.spinInterval,1,1)
         gridlayout.addWidget(lab2,1,2)
 
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)
         layout.setSpacing(0)
         layout.addWidget(self.toolbar)
@@ -423,12 +431,16 @@ class AnimationController(QtGui.QWidget):
         self.editFormat.setEnabled(self.checkboxFormat.isChecked())
 
     def closeEvent(self,event):
-        QtGui.QWidget.closeEvent(self,event)
+        QtWidgets.QWidget.closeEvent(self,event)
         self.callback(None)
            
-class SliceWidget(QtGui.QWidget):
+class SliceWidget(QtWidgets.QWidget):
 
     setAxesBounds = QtCore.Signal(object)
+    startAnimation = QtCore.Signal()
+    stopAnimation = QtCore.Signal()
+    onRecord = QtCore.Signal('PyQt_PyObject')
+    sliceChanged = QtCore.Signal(bool)
 
     def __init__(self,parent=None,variable=None,figure=None,defaultslices=None,dimnames=None,animatecallback=None):
         super(SliceWidget,self).__init__(parent)
@@ -449,17 +461,17 @@ class SliceWidget(QtGui.QWidget):
             for d,l in zip(dims,shape):
                 if l==1: defaultslices[d] = 0
 
-        layout = QtGui.QGridLayout()
+        layout = QtWidgets.QGridLayout()
 
-        self.label = QtGui.QLabel('Dimensions to slice:',self)
+        self.label = QtWidgets.QLabel('Dimensions to slice:',self)
         self.label.setWordWrap(True)
         layout.addWidget(self.label,0,0,1,2)
         
         self.dimcontrols = []
         for i,dim in enumerate(dims):
             #if shape[i]==1: continue
-            checkbox = QtGui.QCheckBox(dimnames.get(dim,dim),self)
-            spin = QtGui.QSpinBox(self)
+            checkbox = QtWidgets.QCheckBox(dimnames.get(dim,dim),self)
+            spin = QtWidgets.QSpinBox(self)
             spin.setRange(0,shape[i]-1)
             if dim in defaultslices:
                 checkbox.setChecked(True)
@@ -467,16 +479,16 @@ class SliceWidget(QtGui.QWidget):
 
             layout.addWidget(checkbox,i+1,0)
             layout.addWidget(spin,i+1,1)
-            self.connect(checkbox, QtCore.SIGNAL('stateChanged(int)'), self.onCheckChanged)
-            self.connect(spin,     QtCore.SIGNAL('valueChanged(int)'), self.onSpinChanged)
+            checkbox.stateChanged.connect(self.onCheckChanged)
+            spin.valueChanged.connect(self.onSpinChanged)
             #self.connect(animatetb,QtCore.SIGNAL('onRecord(PyQt_PyObject)'), self.onRecordAnimation)
 
             # Add animate button unless the dimension has length 1.
             bnAnimate = None
             if shape is not None and shape[i]>1:
-                bnAnimate = QtGui.QPushButton(xmlplot.gui_qt4.getIcon('agt_multimedia.png'),None,self)
+                bnAnimate = QtWidgets.QPushButton(xmlplot.gui_qt4.getIcon('agt_multimedia.png'),None,self)
                 layout.addWidget(bnAnimate,i+1,2)
-                self.connect(bnAnimate,QtCore.SIGNAL('clicked()'), self.onAnimate)
+                bnAnimate.clicked.connect(self.onAnimate)
 
             self.dimcontrols.append((dim,checkbox,spin,bnAnimate))
             
@@ -485,10 +497,10 @@ class SliceWidget(QtGui.QWidget):
         tbs = [c[3] for c in self.dimcontrols if c[3] is not None]
         for tb in tbs: tb.group = tbs
             
-        self.bnChangeAxes = QtGui.QPushButton('Set axes boundaries',self)
-        self.menuAxesBounds = QtGui.QMenu(self)
+        self.bnChangeAxes = QtWidgets.QPushButton('Set axes boundaries',self)
+        self.menuAxesBounds = QtWidgets.QMenu(self)
         self.bnChangeAxes.setMenu(self.menuAxesBounds)
-        #self.bnAnimate = QtGui.QPushButton('Create animation...',self)
+        #self.bnAnimate = QtWidgets.QPushButton('Create animation...',self)
         #self.connect(self.bnAnimate, QtCore.SIGNAL('clicked()'), self.onAnimate)
 
         self.menuDims = None
@@ -537,9 +549,9 @@ class SliceWidget(QtGui.QWidget):
 
         if self.windowAnimate is not None: self.windowAnimate.close()
         self.windowAnimate = AnimationController(sender,dim,spin,self.animatecallback)
-        self.connect(self.windowAnimate,QtCore.SIGNAL('onRecord(PyQt_PyObject)'), QtCore.SIGNAL('onRecord(PyQt_PyObject)'))
-        self.connect(self.windowAnimate,QtCore.SIGNAL('startAnimation()'), QtCore.SIGNAL('startAnimation()'))
-        self.connect(self.windowAnimate,QtCore.SIGNAL('stopAnimation()'),  QtCore.SIGNAL('stopAnimation()'))
+        self.windowAnimate.onRecord.connect(self.onRecord)
+        self.windowAnimate.startAnimation.connect(self.startAnimation)
+        self.windowAnimate.stopAnimation.connect(self.stopAnimation)
         pos = sender.parent().mapToGlobal(sender.pos())
         self.windowAnimate.move(pos)
         self.windowAnimate.show()
@@ -549,7 +561,7 @@ class SliceWidget(QtGui.QWidget):
         # Make sure that the toolbar does not extend beyond the desktop
         # Qt 4.3 does not show the toolbar at all if that happens...
         pos = self.windowAnimate.pos()
-        desktopgeometry = QtGui.QApplication.desktop().availableGeometry(sender)
+        desktopgeometry = QtWidgets.QApplication.desktop().availableGeometry(sender)
         minx = desktopgeometry.left()
         maxx = desktopgeometry.right()-self.windowAnimate.frameGeometry().width()
         miny = desktopgeometry.top()
@@ -588,10 +600,10 @@ class SliceWidget(QtGui.QWidget):
         else:
             self.menuDims = None
         
-        self.emit(QtCore.SIGNAL('sliceChanged(bool)'),True)
+        self.sliceChanged.emit(True)
 
     def onSpinChanged(self,value):
-        self.emit(QtCore.SIGNAL('sliceChanged(bool)'),False)
+        self.sliceChanged.emit(False)
 
     def getSlices(self):
         slics = {}
@@ -600,17 +612,17 @@ class SliceWidget(QtGui.QWidget):
                 slics[dim] = int(spin.value())
         return slics
 
-class NcPropertiesDialog(QtGui.QDialog):
+class NcPropertiesDialog(QtWidgets.QDialog):
     def __init__(self,item,parent,flags=QtCore.Qt.Dialog):
-        QtGui.QDialog.__init__(self,parent,flags)
-        layout = QtGui.QVBoxLayout()
+        QtWidgets.QDialog.__init__(self,parent,flags)
+        layout = QtWidgets.QVBoxLayout()
 
         def createList(parent,rows,headers):
-            list = QtGui.QTreeWidget(self)
+            list = QtWidgets.QTreeWidget(self)
             list.setUniformRowHeights(True)
             list.setSortingEnabled(True)
             list.sortByColumn(-1,QtCore.Qt.AscendingOrder)
-            list.addTopLevelItems([QtGui.QTreeWidgetItem(items) for items in rows])
+            list.addTopLevelItems([QtWidgets.QTreeWidgetItem(items) for items in rows])
             list.setHeaderLabels(headers)
             list.header().setMovable(False)
             list.setColumnCount(len(headers))
@@ -625,7 +637,7 @@ class NcPropertiesDialog(QtGui.QDialog):
         # Show dimensions
         dimnames = item.getDimensions()
         if dimnames:
-            lab = QtGui.QLabel('Dimensions:',self)
+            lab = QtWidgets.QLabel('Dimensions:',self)
             layout.addWidget(lab)
             hasunlimited = False
             if isinstance(item,xmlplot.common.VariableStore):
@@ -652,39 +664,39 @@ class NcPropertiesDialog(QtGui.QDialog):
             self.listDimensions = createList(self,rows,labels)
             layout.addWidget(self.listDimensions)
             if hasunlimited:
-                lab = QtGui.QLabel('* This dimension is unlimited. It can grow as required.',self)
+                lab = QtWidgets.QLabel('* This dimension is unlimited. It can grow as required.',self)
                 layout.addWidget(lab)
 
             layout.addSpacing(10)
         elif isinstance(item,xmlplot.common.Variable):
-            lab = QtGui.QLabel('This variable is a scalar.')
+            lab = QtWidgets.QLabel('This variable is a scalar.')
             layout.addWidget(lab)
             layout.addSpacing(10)
 
         if isinstance(item,xmlplot.common.Variable):
-            lab = QtGui.QLabel('Data type: %s' % numpy.dtype(item.getDataType()).name,self)
+            lab = QtWidgets.QLabel('Data type: %s' % numpy.dtype(item.getDataType()).name,self)
             layout.addWidget(lab)
             layout.addSpacing(10)
 
         # Show attributes
         props = item.getProperties()
         if props:
-            lab = QtGui.QLabel('Attributes:',self)
+            lab = QtWidgets.QLabel('Attributes:',self)
             layout.addWidget(lab)
             keys = sorted(props.keys(),key=lambda x: x.lower())
             self.listProperties = createList(self,[(k,unicode(props[k])) for k in keys],('name','value'))
             layout.addWidget(self.listProperties)
         else:
             if isinstance(item,xmlplot.common.Variable):
-                lab = QtGui.QLabel('This variable has no attributes.',self)
+                lab = QtWidgets.QLabel('This variable has no attributes.',self)
             else:
-                lab = QtGui.QLabel('This file has no global attributes.',self)
+                lab = QtWidgets.QLabel('This file has no global attributes.',self)
             layout.addWidget(lab)
             
         # Add buttons
-        bnLayout = QtGui.QHBoxLayout()
-        bnOk = QtGui.QPushButton('OK',self)
-        self.connect(bnOk, QtCore.SIGNAL('clicked()'), self.accept)
+        bnLayout = QtWidgets.QHBoxLayout()
+        bnOk = QtWidgets.QPushButton('OK',self)
+        bnOk.clicked.connect(self.accept)
         bnLayout.addStretch(1)
         bnLayout.addWidget(bnOk)
         layout.addLayout(bnLayout)
@@ -696,13 +708,13 @@ class NcPropertiesDialog(QtGui.QDialog):
             self.setWindowTitle('File properties')
         self.setMinimumWidth(200)
 
-class ReassignDialog(QtGui.QDialog):
+class ReassignDialog(QtWidgets.QDialog):
     """Dialog for reassigning coordinate dimensions of a NetCDF file.
     """
 
     def __init__(self,store,parent,flags=QtCore.Qt.Dialog):
-        QtGui.QDialog.__init__(self,parent,flags)
-        layout = QtGui.QGridLayout()
+        QtWidgets.QDialog.__init__(self,parent,flags)
+        layout = QtWidgets.QGridLayout()
         irow = 0
         nc = store.getcdf()
         
@@ -710,8 +722,8 @@ class ReassignDialog(QtGui.QDialog):
         vars = dict((name,store.getVariable(name)) for name in store.getVariableNames())
         self.dim2combo = {}
         for dim in ncdims:
-            labk = QtGui.QLabel(dim,self)
-            combo = QtGui.QComboBox(self)
+            labk = QtWidgets.QLabel(dim,self)
+            combo = QtWidgets.QComboBox(self)
             self.dim2combo[dim] = combo
             added = []
             for vn in sorted(vars.iterkeys(),key=lambda x: x.lower()):
@@ -728,22 +740,22 @@ class ReassignDialog(QtGui.QDialog):
             irow += 1
 
         # Add buttons
-        bnLayout = QtGui.QHBoxLayout()
+        bnLayout = QtWidgets.QHBoxLayout()
         bnLayout.addStretch(1)
         
-        bnReset = QtGui.QPushButton('Reset',self)
-        self.menuReset = QtGui.QMenu(self)
+        bnReset = QtWidgets.QPushButton('Reset',self)
+        self.menuReset = QtWidgets.QMenu(self)
         self.actResetToDefault = self.menuReset.addAction('Restore default reassignments',self.onResetToDefault)
         self.actResetRemoveAll = self.menuReset.addAction('Undo all reassignments',self.onResetRemoveAll)
         bnReset.setMenu(self.menuReset)
         bnLayout.addWidget(bnReset)
         
-        bnOk = QtGui.QPushButton('OK',self)
-        self.connect(bnOk, QtCore.SIGNAL('clicked()'), self.accept)
+        bnOk = QtWidgets.QPushButton('OK',self)
+        bnOk.clicked.connect(self.accept)
         bnLayout.addWidget(bnOk)
         
-        bnCancel = QtGui.QPushButton('Cancel',self)
-        self.connect(bnCancel, QtCore.SIGNAL('clicked()'), self.reject)
+        bnCancel = QtWidgets.QPushButton('Cancel',self)
+        bnCancel.clicked.connect(self.reject)
         bnLayout.addWidget(bnCancel)
 
         layout.addLayout(bnLayout,irow+1,0,1,3)
@@ -779,7 +791,7 @@ class ReassignDialog(QtGui.QDialog):
                 if dim in self.store.defaultcoordinates: del self.store.defaultcoordinates[dim]
             else:
                 self.store.defaultcoordinates[dim] = var
-        return QtGui.QDialog.accept(self)
+        return QtWidgets.QDialog.accept(self)
         
     def onResetToDefault(self):
         self.store.autoReassignCoordinates()
@@ -789,9 +801,10 @@ class ReassignDialog(QtGui.QDialog):
         self.store.defaultcoordinates = {}
         self.selectComboValues()
 
-class NcTreeWidget(QtGui.QTreeWidget):
+class NcTreeWidget(QtWidgets.QTreeWidget):
+    fileDropped = QtCore.Signal(str)
     def __init__(self,parent):
-        QtGui.QTreeWidget.__init__(self,parent)
+        QtWidgets.QTreeWidget.__init__(self,parent)
         self.setAcceptDrops(True)
 
     def dragEnterEvent(self,event):
@@ -799,30 +812,30 @@ class NcTreeWidget(QtGui.QTreeWidget):
             event.setDropAction(QtCore.Qt.CopyAction)
             event.accept()
         else:
-            QtGui.QTreeWidget.dragEnterEvent(self,event)
+            QtWidgets.QTreeWidget.dragEnterEvent(self,event)
 
     def dragMoveEvent(self,event):
         if event.mimeData().hasUrls():
             event.setDropAction(QtCore.Qt.CopyAction)
             event.accept()
         else:
-            QtGui.QTreeWidget.dragMoveEvent(self,event)
+            QtWidgets.QTreeWidget.dragMoveEvent(self,event)
 
     def dropEvent(self,event):
         data = event.mimeData()
         if event.mimeData().hasUrls():
             for url in data.urls():
-                self.emit(QtCore.SIGNAL('fileDropped'),unicode(url.toLocalFile()))
+                self.fileDropped.emit(unicode(url.toLocalFile()))
             event.accept()
         else:
-            QtGui.QTreeWidget.dropEvent(self,event)
+            QtWidgets.QTreeWidget.dropEvent(self,event)
 
-class VisualizeDialog(QtGui.QMainWindow):
+class VisualizeDialog(QtWidgets.QMainWindow):
     """Main PyNCView window.
     """
     
     def __init__(self,parent=None):
-        QtGui.QMainWindow.__init__(self,parent,QtCore.Qt.Window | QtCore.Qt.WindowMaximizeButtonHint | QtCore.Qt.WindowMinimizeButtonHint| QtCore.Qt.WindowSystemMenuHint )
+        QtWidgets.QMainWindow.__init__(self,parent,QtCore.Qt.Window | QtCore.Qt.WindowMaximizeButtonHint | QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowMinimizeButtonHint| QtCore.Qt.WindowSystemMenuHint )
 
         # Load persistent settings
         self.settings = SettingsStore()
@@ -832,42 +845,42 @@ class VisualizeDialog(QtGui.QMainWindow):
             print e
             pass
 
-        central = QtGui.QWidget(self)
+        central = QtWidgets.QWidget(self)
 
         self.figurepanel = xmlplot.gui_qt4.FigurePanel(central)
         self.figurepanel.setMinimumSize(500,350)
         self.figurepanel.figure.autosqueeze = False
         self.store = self.figurepanel.figure.source
         
-        self.labelMissing = QtGui.QLabel('',central)
+        self.labelMissing = QtWidgets.QLabel('',central)
         self.labelMissing.setWordWrap(True)
         self.labelMissing.setVisible(False)
 
-        layout = QtGui.QVBoxLayout(central)
+        layout = QtWidgets.QVBoxLayout(central)
         layout.addWidget(self.labelMissing,alignment=QtCore.Qt.AlignTop)
         layout.addWidget(self.figurepanel)
 
         self.setCentralWidget(central)
 
-        browserwidget = QtGui.QWidget(self)
+        browserwidget = QtWidgets.QWidget(self)
         
-        self.browsertoolbar = QtGui.QToolBar(browserwidget)
+        self.browsertoolbar = QtWidgets.QToolBar(browserwidget)
 
         self.tree = NcTreeWidget(browserwidget)
         self.tree.header().hide()
-        self.tree.setSizePolicy(QtGui.QSizePolicy.Minimum,QtGui.QSizePolicy.Expanding)
+        self.tree.setSizePolicy(QtWidgets.QSizePolicy.Minimum,QtWidgets.QSizePolicy.Expanding)
         self.tree.setMinimumWidth(75)
-        self.tree.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.tree.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         
-        self.connect(self.tree, QtCore.SIGNAL('itemSelectionChanged()'), self.onSelectionChanged)
-        self.connect(self.tree, QtCore.SIGNAL('fileDropped'), self.load)
-        self.connect(self.tree, QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)'), self.onVarDoubleClicked)
-        self.connect(self.tree, QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'), self.onTreeContextMenuEvent)
-        #self.bnAddExpression = QtGui.QPushButton('Add custom expression...',browserwidget)
+        self.tree.itemSelectionChanged.connect(self.onSelectionChanged)
+        self.tree.fileDropped.connect(self.load)
+        self.tree.itemDoubleClicked.connect(self.onVarDoubleClicked)
+        self.tree.customContextMenuRequested.connect(self.onTreeContextMenuEvent)
+        #self.bnAddExpression = QtWidgets.QPushButton('Add custom expression...',browserwidget)
         #self.connect(self.bnAddExpression, QtCore.SIGNAL('clicked()'), self.editExpression)
         
-        browserlayout = QtGui.QVBoxLayout(browserwidget)
+        browserlayout = QtWidgets.QVBoxLayout(browserwidget)
         browserlayout.setSpacing(0)
         browserlayout.addWidget(self.browsertoolbar)
         browserlayout.addWidget(self.tree)
@@ -877,22 +890,23 @@ class VisualizeDialog(QtGui.QMainWindow):
 
         self.setWindowTitle('PyNcView')
         
-        class SliceDockWidget(QtGui.QDockWidget):
+        class SliceDockWidget(QtWidgets.QDockWidget):
+            hidden = QtCore.Signal()
             def __init__(self,title,parent):
-                QtGui.QDockWidget.__init__(self,title,parent)
+                QtWidgets.QDockWidget.__init__(self,title,parent)
             def hideEvent(self,event):
-                self.emit(QtCore.SIGNAL('hidden()'))
+                self.hidden.emit()
                 
         self.dockSlice = SliceDockWidget('Slicing',self)
-        self.dockSlice.setFeatures(QtGui.QDockWidget.DockWidgetMovable|QtGui.QDockWidget.DockWidgetFloatable|QtGui.QDockWidget.DockWidgetClosable)
+        self.dockSlice.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable|QtWidgets.QDockWidget.DockWidgetFloatable|QtWidgets.QDockWidget.DockWidgetClosable)
         self.dockSlice.setAllowedAreas(QtCore.Qt.LeftDockWidgetArea|QtCore.Qt.RightDockWidgetArea)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.dockSlice)
         self.dockSlice.setVisible(False)
-        self.connect(self.dockSlice, QtCore.SIGNAL('hidden()'), self.onHideSliceDockWidget)
+        self.dockSlice.hidden.connect(self.onHideSliceDockWidget)
         self.slicetab = None
         
-        self.dockFileBrowser = QtGui.QDockWidget('Workspace explorer',self)
-        self.dockFileBrowser.setFeatures(QtGui.QDockWidget.DockWidgetMovable|QtGui.QDockWidget.DockWidgetFloatable)
+        self.dockFileBrowser = QtWidgets.QDockWidget('Workspace explorer',self)
+        self.dockFileBrowser.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable|QtWidgets.QDockWidget.DockWidgetFloatable)
         self.dockFileBrowser.setAllowedAreas(QtCore.Qt.LeftDockWidgetArea|QtCore.Qt.RightDockWidgetArea)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.dockFileBrowser)
         self.dockFileBrowser.setWidget(browserwidget)
@@ -908,10 +922,10 @@ class VisualizeDialog(QtGui.QMainWindow):
 
         self.createMenu()
 
-        self.bnopen = QtGui.QToolButton(self.browsertoolbar)
-        act = QtGui.QAction(xmlplot.gui_qt4.getIcon('fileopen.png'),'Open',self.browsertoolbar)
-        self.bnopen.setPopupMode(QtGui.QToolButton.MenuButtonPopup)
-        self.connect(act, QtCore.SIGNAL('triggered()'), self.onFileOpen)
+        self.bnopen = QtWidgets.QToolButton(self.browsertoolbar)
+        act = QtWidgets.QAction(xmlplot.gui_qt4.getIcon('fileopen.png'),'Open',self.browsertoolbar)
+        self.bnopen.setPopupMode(QtWidgets.QToolButton.MenuButtonPopup)
+        act.triggered.connect(self.onFileOpen)
         self.bnopen.setDefaultAction(act)
         self.bnopen.setMenu(self.menuRecentFile)
         self.browsertoolbar.addWidget(self.bnopen)
@@ -923,7 +937,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         if self.settings['WindowPosition/Maximized'].getValue():
             self.showMaximized()
         elif self.settings['WindowPosition/Width'].getValue():
-            desktoprct = QtGui.QApplication.desktop().availableGeometry()
+            desktoprct = QtWidgets.QApplication.desktop().availableGeometry()
             w = min(desktoprct.width(), self.settings['WindowPosition/Width'].getValue())
             h = min(desktoprct.height(),self.settings['WindowPosition/Height'].getValue())
             x = max(0,min(desktoprct.width() -w,self.settings['WindowPosition/X'].getValue()))
@@ -979,7 +993,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         """Called when the user clicks "Open..." in the "File" menu.
         """
         filter = 'NetCDF files (*.nc);;All files (*.*)'
-        paths,filter = QtGui.QFileDialog.getOpenFileNamesAndFilter(self,'',os.path.dirname(self.lastpath),filter)
+        paths,filter = QtWidgets.QFileDialog.getOpenFileNamesAndFilter(self,'',os.path.dirname(self.lastpath),filter)
         if not paths: return
         paths = map(unicode,paths)
         if len(paths)==1: paths = paths[0]
@@ -994,22 +1008,22 @@ class VisualizeDialog(QtGui.QMainWindow):
         path = 'http://data.nodc.noaa.gov/thredds/dodsC/woa/WOA09/NetCDFdata/temperature_annual_1deg.nc'
         path = 'http://dtvirt5.deltares.nl:8080/thredds/dodsC/opendap/rijkswaterstaat/jarkus/profiles/transect.nc'
         path = 'http://megara.tamu.edu:8080/thredds/dodsC/mch_outputs/ngom_24h/mch_his_ngom_24h_2008.nc'
-        path,ok = QtGui.QInputDialog.getText(self,'Open DAP resource','URL:',QtGui.QLineEdit.Normal,path)
+        path,ok = QtGui.QInputDialog.getText(self,'Open DAP resource','URL:',QtWidgets.QLineEdit.Normal,path)
         if not ok: return
         self.load(path)
         
     def onEditOptions(self):
-        dlg = QtGui.QDialog(self,QtCore.Qt.Dialog|QtCore.Qt.CustomizeWindowHint|QtCore.Qt.WindowTitleHint|QtCore.Qt.WindowCloseButtonHint)
+        dlg = QtWidgets.QDialog(self,QtCore.Qt.Dialog|QtCore.Qt.CustomizeWindowHint|QtCore.Qt.WindowTitleHint|QtCore.Qt.WindowCloseButtonHint)
         dlg.setWindowTitle('Options')
         
-        layout = QtGui.QVBoxLayout()
-        cb = QtGui.QCheckBox('Treat values outside prescribed valid range as missing data.',dlg)
+        layout = QtWidgets.QVBoxLayout()
+        cb = QtWidgets.QCheckBox('Treat values outside prescribed valid range as missing data.',dlg)
         cb.setChecked(self.settings['MaskValuesOutsideRange'].getValue(usedefault=True))
         layout.addWidget(cb)
         
-        layoutButtons = QtGui.QHBoxLayout()
-        bnOk = QtGui.QPushButton('OK',dlg)
-        bnCancel = QtGui.QPushButton('Cancel',dlg)
+        layoutButtons = QtWidgets.QHBoxLayout()
+        bnOk = QtWidgets.QPushButton('OK',dlg)
+        bnCancel = QtWidgets.QPushButton('Cancel',dlg)
         layoutButtons.addStretch()
         layoutButtons.addWidget(bnOk)
         layoutButtons.addWidget(bnCancel)
@@ -1017,10 +1031,10 @@ class VisualizeDialog(QtGui.QMainWindow):
         
         dlg.setLayout(layout)
         
-        self.connect(bnOk,     QtCore.SIGNAL('clicked()'), dlg.accept)
-        self.connect(bnCancel, QtCore.SIGNAL('clicked()'), dlg.reject)
+        bnOk.clicked.connect(dlg.accept)
+        bnCancel.clicked.connect(dlg.reject)
         
-        if dlg.exec_()!=QtGui.QDialog.Accepted: return
+        if dlg.exec_()!=QtWidgets.QDialog.Accepted: return
         
         mask = cb.isChecked()
         self.settings['MaskValuesOutsideRange'].setValue(mask)
@@ -1049,7 +1063,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         of a NetCDF file (root) node.
         """
         dialog = ReassignDialog(store,parent=self)
-        if dialog.exec_()==QtGui.QDialog.Accepted:
+        if dialog.exec_()==QtWidgets.QDialog.Accepted:
             self.figurepanel.figure.update()
 
     def onFileProperties(self,store):
@@ -1112,7 +1126,7 @@ class VisualizeDialog(QtGui.QMainWindow):
             dim2var.setdefault(tuple(variable.getDimensions()),[]).append(variable)
             
         # Create root node for this file
-        fileroot = QtGui.QTreeWidgetItem([storename],QtGui.QTreeWidgetItem.Type)
+        fileroot = QtWidgets.QTreeWidgetItem([storename],QtWidgets.QTreeWidgetItem.Type)
         fileroot.setData(0,QtCore.Qt.UserRole,storename)
         fileroot.setData(0,QtCore.Qt.UserRole+1,path)
         fileroot.setToolTip(0,path)
@@ -1128,11 +1142,11 @@ class VisualizeDialog(QtGui.QMainWindow):
             vars = dim2var[dims]
             nodename = ','.join(dims)
             if nodename=='': nodename = '[none]'
-            curdimroot = QtGui.QTreeWidgetItem([nodename],QtGui.QTreeWidgetItem.Type)
+            curdimroot = QtWidgets.QTreeWidgetItem([nodename],QtWidgets.QTreeWidgetItem.Type)
             items = []
             for variable in sorted(vars,cmp=lambda x,y: cmp(x.getLongName().lower(),y.getLongName().lower())):
                 varname, longname = variable.getName(),variable.getLongName()
-                item = QtGui.QTreeWidgetItem([longname],QtGui.QTreeWidgetItem.Type)
+                item = QtWidgets.QTreeWidgetItem([longname],QtWidgets.QTreeWidgetItem.Type)
                 item.setData(0,QtCore.Qt.UserRole,'%s[\'%s\']' % (storename,varname))
                 curdimroot.addChild(item)
             if curdimroot.childCount()>0: fileroot.addChild(curdimroot)
@@ -1184,7 +1198,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         item = self.store[varname]
 
         # Build and show the context menu
-        menu = QtGui.QMenu(self)
+        menu = QtWidgets.QMenu(self)
         actReassign,actClose,actProperties = None,None,None
         if isinstance(item,(xmlplot.common.VariableStore,xmlplot.common.Variable)):
             actProperties = menu.addAction('Properties...')
@@ -1277,7 +1291,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         #self.defaultslices = slics
 
         # Show wait cursor
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
 
         # Disable figure updating while we make changes.
         oldupdating = self.figurepanel.figure.setUpdating(False)
@@ -1308,7 +1322,7 @@ class VisualizeDialog(QtGui.QMainWindow):
             self.figurepanel.figure.setUpdating(oldupdating)
         finally:
             # Restore original cursor
-            QtGui.QApplication.restoreOverrideCursor()
+            QtWidgets.QApplication.restoreOverrideCursor()
 
     def getDynamicTitle(self,var,slcs=None):
         """Returns the dynamically generated title based on the current slice in an animation.
@@ -1344,7 +1358,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         if varname is None: return
 
         # Show wait cursor and progress dialog
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         
         progdialog = QtGui.QProgressDialog('Examining data range...',None,0,100,self,QtCore.Qt.Dialog|QtCore.Qt.WindowTitleHint)
         progdialog.setWindowModality(QtCore.Qt.WindowModal)
@@ -1452,7 +1466,7 @@ class VisualizeDialog(QtGui.QMainWindow):
             progdialog.close()
             
             # Restore original cursor
-            QtGui.QApplication.restoreOverrideCursor()
+            QtWidgets.QApplication.restoreOverrideCursor()
             
     def onRecordAnimation(self,dim):
         # Get the string specifying the currently selected variable (without slices applied!)
@@ -1479,11 +1493,11 @@ class VisualizeDialog(QtGui.QMainWindow):
             return
                 
         # Get the directory to export PNG images to.
-        targetdir = unicode(QtGui.QFileDialog.getExistingDirectory(self,'Select directory for still images'))
+        targetdir = unicode(QtWidgets.QFileDialog.getExistingDirectory(self,'Select directory for still images'))
         if targetdir=='': return
 
         # Show wait cursor
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
 
         try:
             # Get the slice selection, and the range across we will vary for the animation.
@@ -1536,7 +1550,7 @@ class VisualizeDialog(QtGui.QMainWindow):
                 dlgProgress.close()
         finally:
             # Restore original cursor
-            QtGui.QApplication.restoreOverrideCursor()
+            QtWidgets.QApplication.restoreOverrideCursor()
 
     def onSelectionChanged(self):
         if not self.allowupdates: return
@@ -1558,11 +1572,11 @@ class VisualizeDialog(QtGui.QMainWindow):
         # Add slicing tab
         if self.slicetab is not None: self.slicetab.close()
         self.slicetab = SliceWidget(None,var,figure=self.figurepanel.figure,defaultslices=self.defaultslices,dimnames=self.store.getVariableLongNames(),animatecallback=self.onAnimation)
-        self.connect(self.slicetab, QtCore.SIGNAL('sliceChanged(bool)'), self.onSliceChanged)
+        self.slicetab.sliceChanged.connect(self.onSliceChanged)
         self.slicetab.setAxesBounds.connect(self.setAxesBounds)
-        self.connect(self.slicetab,QtCore.SIGNAL('onRecord(PyQt_PyObject)'), self.onRecordAnimation)
-        self.connect(self.slicetab,QtCore.SIGNAL('startAnimation()'), self.figurepanel.startAnimation)
-        self.connect(self.slicetab,QtCore.SIGNAL('stopAnimation()'), self.figurepanel.stopAnimation)
+        self.slicetab.onRecord.connect(self.onRecordAnimation)
+        self.slicetab.startAnimation.connect(self.figurepanel.startAnimation)
+        self.slicetab.stopAnimation.connect(self.figurepanel.stopAnimation)
         self.dockSlice.setWidget(self.slicetab)
                     
         self.redraw(preserveproperties=False)
@@ -1600,7 +1614,7 @@ class VisualizeDialog(QtGui.QMainWindow):
         
         valid = False
         while not valid:
-            if dlg.exec_()!=QtGui.QDialog.Accepted: return
+            if dlg.exec_()!=QtWidgets.QDialog.Accepted: return
             expression = str(dlg.edit.text())
             try:
                 var = self.store[expression]
@@ -1611,9 +1625,9 @@ class VisualizeDialog(QtGui.QMainWindow):
    
         if item is None:
             if self.expressionroot is None:
-                self.expressionroot = QtGui.QTreeWidgetItem(['expressions'],QtGui.QTreeWidgetItem.Type)
+                self.expressionroot = QtWidgets.QTreeWidgetItem(['expressions'],QtWidgets.QTreeWidgetItem.Type)
                 self.tree.addTopLevelItem(self.expressionroot)
-            item = QtGui.QTreeWidgetItem(QtGui.QTreeWidgetItem.Type)
+            item = QtWidgets.QTreeWidgetItem(QtWidgets.QTreeWidgetItem.Type)
             self.expressionroot.addChild(item)
         item.setData(0,QtCore.Qt.DisplayRole,expression)
         item.setData(0,QtCore.Qt.UserRole,expression)
@@ -1652,11 +1666,10 @@ def start(options, args):
     inputpaths = list(args)
 
     # Start Qt
-    createQApp = QtGui.QApplication.startingUp()
-    if createQApp:
-        app = QtGui.QApplication([' '])
-    else:
-        app = QtGui.qApp
+    app = QtWidgets.QApplication.instance()
+    if app is None:
+        app = QtWidgets.QApplication([' '])
+        app.lastWindowClosed.connect(app.quit)
 
     # Set icon for all windows.
     app.setWindowIcon(QtGui.QIcon(os.path.join(rootdir,'pyncview.png')))
