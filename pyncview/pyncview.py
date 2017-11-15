@@ -199,7 +199,7 @@ class AboutDialog(QtWidgets.QDialog):
 
         versions = []
         versions.append(('Python','%i.%i.%i %s %i' % tuple(sys.version_info)))
-        versions.append(('Qt4',QtCore.qVersion()))
+        versions.append(('Qt',QtCore.qVersion()))
         versions.append((qt4_backend,qt4_backend_version))
         versions.append(('numpy',numpy.__version__))
         versions.append(('matplotlib',matplotlib.__version__))
@@ -1007,7 +1007,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         path = 'http://data.nodc.noaa.gov/thredds/dodsC/woa/WOA09/NetCDFdata/temperature_annual_1deg.nc'
         path = 'http://dtvirt5.deltares.nl:8080/thredds/dodsC/opendap/rijkswaterstaat/jarkus/profiles/transect.nc'
         path = 'http://megara.tamu.edu:8080/thredds/dodsC/mch_outputs/ngom_24h/mch_his_ngom_24h_2008.nc'
-        path,ok = QtGui.QInputDialog.getText(self,'Open DAP resource','URL:',QtWidgets.QLineEdit.Normal,path)
+        path,ok = QtWidgets.QInputDialog.getText(self,'Open DAP resource','URL:',QtWidgets.QLineEdit.Normal,path)
         if not ok: return
         self.load(path)
         
@@ -1089,7 +1089,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
             if path==curpath:
                 self.tree.clearSelection()
                 curnode.setSelected(True)
-                QtGui.QMessageBox.information(self,'Already open','"%s" has already been opened.' % path)
+                QtWidgets.QMessageBox.information(self,'Already open','"%s" has already been opened.' % path)
                 return
             curstorenames.append(unicode(curnode.data(0,QtCore.Qt.UserRole)))
 
@@ -1097,7 +1097,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         try:
             store = xmlplot.data.open(paths)
         except xmlplot.data.NetCDFError,e:
-            QtGui.QMessageBox.critical(self,'Error opening file',unicode(e))
+            QtWidgets.QMessageBox.critical(self,'Error opening file',unicode(e))
             return
             
         # Determine whether to mask values otuside their valid range.
@@ -1482,13 +1482,13 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         #nfree = len([1 for l in varshape if l>1]) - nsliced
         nfree = len(varshape) - nsliced
         if nsliced==0:
-            QtGui.QMessageBox.critical(self,'No slice dimension selected','Before creating an animation you must first select one or more dimensions you want to take slices from. The index of one of these will be varied to build the animation.')
+            QtWidgets.QMessageBox.critical(self,'No slice dimension selected','Before creating an animation you must first select one or more dimensions you want to take slices from. The index of one of these will be varied to build the animation.')
             return
         elif nfree>2:
-            QtGui.QMessageBox.critical(self,'Insufficient slice dimensions selected','Before creating an animation you must first select at least %i more dimensions you want to take slices from. For the animation, only 1 or 2 free (non-sliced) dimensions should remain.' % (nfree-2))
+            QtWidgets.QMessageBox.critical(self,'Insufficient slice dimensions selected','Before creating an animation you must first select at least %i more dimensions you want to take slices from. For the animation, only 1 or 2 free (non-sliced) dimensions should remain.' % (nfree-2))
             return
         elif nfree<1:
-            QtGui.QMessageBox.critical(self,'Too many slice dimensions selected','Before creating an animation you must first deselect at least %i slice dimensions. For the animation, 1 or 2 free (non-sliced) dimensions should remain.' % (1-nfree))
+            QtWidgets.QMessageBox.critical(self,'Too many slice dimensions selected','Before creating an animation you must first deselect at least %i slice dimensions. For the animation, 1 or 2 free (non-sliced) dimensions should remain.' % (1-nfree))
             return
                 
         # Get the directory to export PNG images to.
@@ -1619,7 +1619,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
                 var = self.store[expression]
                 valid = True
             except Exception,e:
-                QtGui.QMessageBox.critical(self,'Unable to parse expression',str(e))
+                QtWidgets.QMessageBox.critical(self,'Unable to parse expression',str(e))
                 dlg.edit.selectAll()
    
         if item is None:
