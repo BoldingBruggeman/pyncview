@@ -617,7 +617,13 @@ class NcPropertiesDialog(QtWidgets.QDialog):
             list.sortByColumn(-1,QtCore.Qt.AscendingOrder)
             list.addTopLevelItems([QtWidgets.QTreeWidgetItem(items) for items in rows])
             list.setHeaderLabels(headers)
-            list.header().setMovable(False)
+            header = list.header()
+            if hasattr(header, 'setMovable'):
+                # Qt4
+                header.setMovable(False)
+            else:
+                # Qt5
+                header.setSectionsMovable(False)
             list.setColumnCount(len(headers))
             for i in range(len(headers)): list.resizeColumnToContents(i)
             list.setRootIsDecorated(False)
