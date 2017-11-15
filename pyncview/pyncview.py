@@ -306,7 +306,7 @@ class BuildExpressionDialog(QtWidgets.QDialog):
 class AnimateToolBar(QtWidgets.QToolBar):
     startAnimation = QtCore.Signal()
     stopAnimation = QtCore.Signal()
-    onRecord = QtCore.Signal('PyQt_PyObject')
+    onRecord = QtCore.Signal(object)
 
     def __init__(self,parent,dim,spin):
         QtWidgets.QToolBar.__init__(self,parent)
@@ -322,7 +322,7 @@ class AnimateToolBar(QtWidgets.QToolBar):
         self.actEnd       = self.addAction(xmlplot.gui_qt4.getIcon('player_end1.png' ),'Move to end',     self.onEnd)
         self.addWidget(labelStride)
         self.addWidget(self.spinStride)
-        self.actRecord    = self.addAction(xmlplot.gui_qt4.getIcon('camera.png'      ),'Record animation',self.onRecord)
+        self.actRecord    = self.addAction(xmlplot.gui_qt4.getIcon('camera.png'      ),'Record animation',lambda: self.onRecord.emit(self.dim))
         
         self.dim = dim
         self.spin = spin
@@ -362,9 +362,6 @@ class AnimateToolBar(QtWidgets.QToolBar):
             self.actPlayPause.setIcon(xmlplot.gui_qt4.getIcon('player_pause.png'))
             self.actPlayPause.setText('Pause')
 
-    def onRecord(self):
-        self.onRecord.emit(self.dim)
-
     def onSpinChanged(self,value=None):
         if value is None: value = self.spin.value()
         self.actBegin.setEnabled(value>self.spin.minimum())
@@ -377,17 +374,13 @@ class AnimateToolBar(QtWidgets.QToolBar):
         if value==self.spin.maximum(): self.onPlayPause()
 
 class AnimationController(QtWidgets.QWidget):
-    startAnimation = QtCore.Signal()
-    stopAnimation = QtCore.Signal()
-    onRecord = QtCore.Signal('PyQt_PyObject')
-
     def __init__(self,parent,dim,spin,callback=None):
         QtWidgets.QWidget.__init__(self,parent,QtCore.Qt.Tool)
         
         self.toolbar = AnimateToolBar(self,dim,spin)
-        self.toolbar.onRecord.connect(self.onRecord)
-        self.toolbar.startAnimation.connect(self.startAnimation)
-        self.toolbar.stopAnimation.connect(self.stopAnimation)
+        self.onRecord = self.toolbar.onRecord
+        self.startAnimation = self.toolbar.startAnimation
+        self.stopAnimation = self.toolbar.stopAnimation
         
         gridlayout = QtWidgets.QGridLayout()
         
@@ -439,7 +432,7 @@ class SliceWidget(QtWidgets.QWidget):
     setAxesBounds = QtCore.Signal(object)
     startAnimation = QtCore.Signal()
     stopAnimation = QtCore.Signal()
-    onRecord = QtCore.Signal('PyQt_PyObject')
+    onRecord = QtCore.Signal(object)
     sliceChanged = QtCore.Signal(bool)
 
     def __init__(self,parent=None,variable=None,figure=None,defaultslices=None,dimnames=None,animatecallback=None):
