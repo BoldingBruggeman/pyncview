@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+from __future__ import print_function
+
 # Import standard (i.e., non GOTM-GUI) modules.
 import sys,os,re
 import numpy
@@ -19,7 +21,7 @@ def importModules(verbose=True):
         sys.stderr.write('Cannot find GOTM-GUI directory. Please set environment variable "GOTMDIR" to the GOTM root (containing gui.py), or "GOTMGUIDIR" to the GOTM-GUI root, before running.\n')
         sys.exit(1)
     if verbose:
-        print 'Getting GOTM-GUI libraries from "%s".' % relguipath
+        print('Getting GOTM-GUI libraries from "%s".' % relguipath)
 
     # Add the GOTM-GUI directory to the search path.
     gotmguiroot = os.path.join(os.path.dirname(os.path.realpath(__file__)),relguipath)
@@ -33,9 +35,9 @@ def importModules(verbose=True):
     except ImportError,e:
         sys.stderr.write('Unable to import GOTM-GUI libraries (%s). Please ensure that environment variable GOTMDIR or GOTMGUIDIR is set.\n' % e)
         sys.exit(1)
-        
+
     sys.path = path
-    
+
 def main():
     import optparse
 
@@ -181,10 +183,10 @@ def compseries(path1,exp1,path2,exp2,dump=None,quiet=False,order=1):
         # Select a subset of the reference (observed) coordinates that is contained within the set of model coordinates.
         data1 = data1[istart:istop]
         c1 = data1.coords[0]
-        
+
     # Get the name of the coordinate dimension
     cdimname = data2.dimensions[0]
-    
+
     # Linearly interpolate the second series to the coordinates of the first, and
     # take out the raw data from the slice (i.e., discard coordinates, dimension names, etc.)
     ipargs = {cdimname:c1}
@@ -195,12 +197,12 @@ def compseries(path1,exp1,path2,exp2,dump=None,quiet=False,order=1):
     else:
         data2 = data2.interp(**ipargs).data
     data1 = data1.data
-    
+
     # Show information on input data if in Verbose mode.
     if not quiet:
-        print 'Using %i data points.' % len(data1)
-        print 'Range for series 1: %s - %s' % (c1[0],c1[-1])
-        print 'Range for series 2: %s - %s' % (c2[0],c2[-1])
+        print('Using %i data points.' % len(data1))
+        print('Range for series 1: %s - %s' % (c1[0],c1[-1]))
+        print('Range for series 2: %s - %s' % (c2[0],c2[-1]))
 
     # Calculate statistics
     mean1 = data1.mean()
@@ -209,14 +211,14 @@ def compseries(path1,exp1,path2,exp2,dump=None,quiet=False,order=1):
     sd2 = data2.std()
     delta = data2-data1
     R2 = 1.-((data1-data2)**2).sum()/((data1-mean1)**2).sum()
-    
+
     # Print statistics
-    print ('Bias = %s %s' % (mean2-mean1,unit)).encode(enc,'ignore')
-    print ('RMSE = %s %s' % (numpy.sqrt((delta**2).mean()),unit)).encode(enc,'ignore')
-    print ('MAE = %s %s' % (numpy.abs(delta).mean(),unit)).encode(enc,'ignore')
-    print 'Correlation = %s' % (((data1-mean1)*(data2-mean2)).mean()/sd1/sd2)
-    print 'Coefficient of determination (R2) = %s' % R2
-    
+    print('Bias = %s %s' % (mean2-mean1,unit)).encode(enc,'ignore')
+    print('RMSE = %s %s' % (numpy.sqrt((delta**2).mean()),unit)).encode(enc,'ignore')
+    print('MAE = %s %s' % (numpy.abs(delta).mean(),unit)).encode(enc,'ignore')
+    print('Correlation = %s' % (((data1-mean1)*(data2-mean2)).mean()/sd1/sd2))
+    print('Coefficient of determination (R2) = %s' % R2)
+
     # Dump the difference between the data series to NetCDF if desired.
     if dump is not None:
         nc = xmlplot.data.NetCDFStore(dump,'w')
@@ -224,7 +226,7 @@ def compseries(path1,exp1,path2,exp2,dump=None,quiet=False,order=1):
         var = nc.addVariable(cdimname,(cdimname,))
         cvar = store1[cdimname]
         if cvar is not None:
-            for k,v in cvar.getProperties().iteritems():
+            for k,v in cvar.getProperties().items():
                 var.setProperty(k,v)
         var.setData(c1)
         var = nc.addVariable('difference',(cdimname,))

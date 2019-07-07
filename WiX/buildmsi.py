@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 # User-configurable settings
 sourcedir = '../dist'
 exe = 'pyncview.exe'
@@ -11,7 +13,7 @@ import pythoncom    # Needed for GUID generation
 
 # Check for version number on command line
 if len(sys.argv)!=2:
-    print 'buildmsi.py takes one required argument: the version number of the application (x.x.x).'
+    print('buildmsi.py takes one required argument: the version number of the application (x.x.x).')
     sys.exit(2)
 
 # Additional internal settings
@@ -31,12 +33,12 @@ if os.path.isfile(versioncache):
     for iold,inew in zip(ioldversion,iversion):
         if inew>iold: break
     else:
-        print 'New version %s is less than, or equal to, old version %s.' % (version,oldversion)
+        print('New version %s is less than, or equal to, old version %s.' % (version,oldversion))
         sys.exit(1)
 
 # Find WiX utilities
 if 'WIX' not in os.environ:
-    print 'Cannot find environment variable "WIX". Is WIX (http://wix.sourceforge.net) installed?'
+    print('Cannot find environment variable "WIX". Is WIX (http://wix.sourceforge.net) installed?')
     sys.exit(1)
 path_candle = os.path.join(os.environ['WIX'],'bin','candle.exe')
 path_light  = os.path.join(os.environ['WIX'],'bin','light.exe')
@@ -103,13 +105,13 @@ f_files.close()
 import subprocess
 
 ret = subprocess.call((path_candle,'%s.wxs' % mainwxsname,'files.wxs','vcredist.wxs','-dVersion=%s' % version))
-if ret!=0:
-    print 'CANDLE failed with return code %i: exiting.' % ret
+if ret != 0:
+    print('CANDLE failed with return code %i: exiting.' % ret)
     sys.exit(1)
 
 ret = subprocess.call((path_light,'%s.wixobj' % mainwxsname,'files.wixobj','vcredist.wixobj','-ext','WixUIExtension','-cultures:en-us','-b','../dist','-o','%s-%s.msi' % (mainwxsname,version)))
-if ret!=0:
-    print 'LIGHT failed with return code %i: exiting.' % ret
+if ret != 0:
+    print('LIGHT failed with return code %i: exiting.' % ret)
     sys.exit(1)
 
 f = open(versioncache,'w')

@@ -5,9 +5,10 @@ import sys,os
 
 def printVersion(option, opt, value, parser):
     importModules(False)
-    print r'$LastChangedRevision$'.strip('$')
-    print r'$LastChangedDate$'.strip('$')
-    for n,v in xmlplot.common.getVersions(): print '%s: %s' % (n,v)
+    print(r'$LastChangedRevision$'.strip('$'))
+    print(r'$LastChangedDate$'.strip('$'))
+    for n, v in xmlplot.common.getVersions():
+        print('%s: %s' % (n,v))
     sys.exit(0)
 
 def get_argv():
@@ -108,21 +109,21 @@ def main():
     options,args = parser.parse_args(get_argv()[1:])
 
     if options.figurexml is None and not options.expressions:
-        print 'No data to plot specified via -e or -x switch. Exiting.'
+        print('No data to plot specified via -e or -x switch. Exiting.')
         return 2
 
     # One unnamed argument: output path
     if options.output is None:
         for arg in args:
             if '=' not in arg:
-                print 'Error: "%s" does not contain = and therefore cannot be a property assignment. If it is meant as the output path (as in previous versions of multiplot), you now need to specify that with the -o/--output switch.' % arg
+                print('Error: "%s" does not contain = and therefore cannot be a property assignment. If it is meant as the output path (as in previous versions of multiplot), you now need to specify that with the -o/--output switch.' % arg)
                 return 2
 
     # Parse remaining arguments as plot property assignments.
     assignments = {}
     for arg in args:
         if '=' not in arg:
-            print 'Optional arguments should be PROPERTY=VALUE assignments for plot properties, e.g., Font/Size=12. "%s" is not an assignment.' % arg
+            print('Optional arguments should be PROPERTY=VALUE assignments for plot properties, e.g., Font/Size=12. "%s" is not an assignment.' % arg)
             return 2
         name,val = arg.split('=',1)
         assignments[name] = val
@@ -132,7 +133,7 @@ def main():
     if options.reassign is not None:
         for assign in options.reassign.split(','):
             if '=' not in assign:
-                print 'Error: "%s" does not contain = and therefore cannot be a dimension reassignment. Dimension reassignments must be specified as OLDDIMENSIONNAME=NEWDIMENSIONNAME.' % assign
+                print('Error: "%s" does not contain = and therefore cannot be a dimension reassignment. Dimension reassignments must be specified as OLDDIMENSIONNAME=NEWDIMENSIONNAME.' % assign)
                 return 2
             old,new = assign.split('=')
             dimassignments[old] = new
@@ -151,9 +152,10 @@ def main():
     # Plot
     try:
         plt.plot()
-    except Exception,e:
-        if options.debug: raise
-        print e
+    except Exception as e:
+        if options.debug:
+            raise
+        print(e)
         return 1
         
     # Return success
@@ -165,7 +167,7 @@ QtWidgets = None
 
 def importModules(verbose=True):
     global matplotlib,xmlplot
-    
+
     # If MatPlotLib if already loaded, we are done: return.
     if matplotlib is not None: return
 
@@ -186,10 +188,10 @@ def importModules(verbose=True):
     # Import remaining GOTM-GUI modules
     try:
         import xmlplot.data,xmlplot.plot,xmlplot.gui_qt4
-    except ImportError,e:
-        print 'Unable to import xmlplot (%s). Please ensure that it is installed.' % e
+    except ImportError as e:
+        print('Unable to import xmlplot (%s). Please ensure that it is installed.' % e)
         sys.exit(1)
-        
+
     sys.path = path
 
 class Plotter(object):
@@ -197,7 +199,7 @@ class Plotter(object):
         if sources     is None: sources = {}
         if expressions is None: expressions = []
         if assignments is None: assignments = {}
-        
+
         self.sources = sources
         self.expressions = expressions
         self.assignments = assignments
@@ -205,15 +207,16 @@ class Plotter(object):
         self.reassign = reassign
         self.autosqueeze = autosqueeze
         self.maskoutsiderange = maskoutsiderange
-        
+
         self.figurexml = figurexml
         self.animate = animate
         self.dpi = dpi
         self.id = id
         self.verbose = verbose
         self.debug = debug
-        
-        if isinstance(self.id,basestring): self.id = (self.id,)
+
+        if isinstance(self.id, (str, u''.__class__)):
+            self.id = (self.id,)
 
         importModules(verbose)
 
@@ -223,17 +226,17 @@ class Plotter(object):
                 if m==nc: break
             else:
                 raise Exception('Forced NetCDF module "%s" is not available. Available modules: %s.' % (nc,', '.join([m[0] for m in xmlplot.data.netcdf.netcdfmodules])))
-        
+
     def addExpression(self,expression,defaultsource=None,label=None):
         if defaultsource is None:
             defaultsource = self.sources.keys()[0]
         else:
             assert defaultsource in self.sources,'Default source "%s" has not been defined.' % defaultsource
         self.expressions.append((label,defaultsource,expression))
-            
+
     def plot(self,startmessageloop=True):
         gui = self.output is None
-    
+
         if gui:
             # We have to show figure in GUI.
 
@@ -255,7 +258,7 @@ class Plotter(object):
         else:
             # We have to export figure to file.
             fig = xmlplot.plot.Figure()
-            
+
         # Set autosqueeze (of singleton dimensions) behavior
         fig.autosqueeze = self.autosqueeze
 
@@ -263,13 +266,14 @@ class Plotter(object):
         # (these will only be used if the -x option specifies an XML file, and
         # that file references one of the supplementary data sources)
         sources = {}
-        for sourcename,path in self.sources.iteritems():
+        for sourcename,path in self.sources.items():
             path = os.path.abspath(path)
             oldsourcename,res = sources.get(path,(None,None))
             if res is None:
-                if self.verbose: print 'Opening "%s".' % path
+                if self.verbose:
+                    print('Opening "%s".' % path)
                 res = xmlplot.data.open(path)
-                for old,new in self.reassign.iteritems():
+                for old,new in self.reassign.items():
                     if new=='':
                         if old in res.defaultcoordinates: del res.defaultcoordinates[old]
                     else:
@@ -305,7 +309,7 @@ class Plotter(object):
                 try:
                     series = fig.addVariable(expression,sourcename)
                 except Exception,e:
-                    for name,source in sources.itervalues():
+                    for name,source in sources.values():
                         if name==sourcename: break
                     raise Exception('%s\nVariables present in NetCDF file: %s.' % (str(e),', '.join(source.getVariableNames())))
             if unlinkedseries:
@@ -317,7 +321,7 @@ class Plotter(object):
             series['Label'].setValue(label)
             
         # Process assignments to plot properties.
-        for name,val in self.assignments.iteritems():
+        for name,val in self.assignments.items():
             node = fig.properties.findNode(name,create=True)
             if node is None:
                 raise Exception('"%s" was not found in plot properties.' % name)
@@ -326,11 +330,12 @@ class Plotter(object):
             tp = node.getValueType(returnclass=True)
             try:
                 val = tp.fromXmlString(val,{},node.templatenode)
-                if self.verbose: print '"%s": assigning value "%s".' % (fullname,val.toPrettyString())
+                if self.verbose:
+                    print('"%s": assigning value "%s".' % (fullname,val.toPrettyString()))
                 node.setValue(val)
             except Exception,e:
                 raise Exception('"%s": cannot assign value "%s". %s' % (fullname,val,e))
-            
+
         # Unless we are making an animation (in that case the still frame is not set yet), update the plot.
         fig.setUpdating(self.animate is None)
 
@@ -351,15 +356,17 @@ class Plotter(object):
         else:
             if self.animate is None:
                 # Export figure to file
-                if self.verbose: print 'Exporting figure to "%s".' % self.output
+                if self.verbose:
+                    print('Exporting figure to "%s".' % self.output)
                 fig.exportToFile(self.output,dpi=self.dpi)
             else:
                 animator.animateAndExport(self.output,dpi=self.dpi,verbose=self.verbose)
 
         # Close NetCDF files, unless we leave an open dialog on screen.
         if not (gui and not startmessageloop):
-            for name,source in sources.itervalues(): source.unlink()
+            for name,source in sources.values():
+                source.unlink()
 
-if __name__=='__main__':
+if __name__ == '__main__':
     ret = main()
     sys.exit(ret)

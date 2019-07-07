@@ -4,6 +4,8 @@
 # Module import and configuration, plus command line parsing.
 # -------------------------------------------------------------------
 
+from __future__ import print_function
+
 # Import standard (i.e., non GOTM-GUI) modules.
 import sys,os,optparse,math,numpy
 
@@ -38,10 +40,10 @@ if 'GOTMGUIDIR' in os.environ:
 elif 'GOTMDIR' in os.environ:
     relguipath = os.environ['GOTMDIR']+'/gui.py'
 else:
-    print 'Cannot find GOTM-GUI directory. Please set environment variable "GOTMDIR" to the GOTM root (containing gui.py), or "GOTMGUIDIR" to the GOTM-GUI root, before running.'
+    print('Cannot find GOTM-GUI directory. Please set environment variable "GOTMDIR" to the GOTM root (containing gui.py), or "GOTMGUIDIR" to the GOTM-GUI root, before running.')
     sys.exit(1)
 if not options.quiet:
-    print 'Getting GOTM-GUI libraries from "%s".' % relguipath
+    print('Getting GOTM-GUI libraries from "%s".' % relguipath)
 
 # Add the GOTM-GUI directory to the search path and import the common
 # GOTM-GUI module (needed for command line parsing).
@@ -53,7 +55,7 @@ sys.path.append(gotmguiroot)
 try:
     import xmlplot.common,xmlplot.data,xmlplot.expressions
 except ImportError,e:
-    print 'Unable to import GOTM-GUI libraries (%s). Please ensure that environment variable GOTMDIR or GOTMGUIDIR is set.' % e
+    print('Unable to import GOTM-GUI libraries (%s). Please ensure that environment variable GOTMDIR or GOTMGUIDIR is set.' % e)
     sys.exit(1)
 
 # -------------------------------------------------------------------
@@ -73,7 +75,8 @@ for info in options.sources:
     else:
         sourcename = info[0]
     path = os.path.abspath(path)
-    if not options.quiet: print 'Opening "%s".' % path
+    if not options.quiet:
+        print('Opening "%s".' % path)
     res = xmlplot.data.NetCDFStore.loadUnknownConvention(path)
     store.addChild(res,sourcename)
     if firstsource is None: firstsource = sourcename
@@ -82,10 +85,10 @@ for info in options.sources:
 # Resolve the expression
 try:
     var = store.getExpression(expression,firstsource)
-except Exception,e:
-    print e
+except Exception as e:
+    print(e)
     sys.exit(1)
-    
+
 if isinstance(var,xmlplot.expressions.VariableExpression):
     expressions = [e.getText(type=0,addparentheses=False) for e in var.root]
 else:
@@ -106,7 +109,7 @@ if shape is not None and numpy.prod(shape)==1:
     value = var.getSlice((Ellipsis,),dataonly=True)
     if isinstance(value,(tuple,list)): value = value[0]
     if isinstance(value,numpy.ndarray): value = value.flatten()[0]
-    print 'Data consists of a scalar with value %g%s' % (value,unit)
+    print('Data consists of a scalar with value %g%s' % (value,unit))
     sys.exit(0)
 
 # If we need percentiles, we need all data in memory
@@ -118,7 +121,7 @@ n,sumx,sumx2,min,max = 0,0.,0.,None,None
 def readdata(slic,idim=0):
     if shape is not None and idim<len(shape)-1 and numpy.prod(shape[idim:])>options.maxslab:
         #if not options.quiet:
-        #    print 'Iterating over dimension %s to prevent extreme memory consumption.' % dims[idim]
+        #    print('Iterating over dimension %s to prevent extreme memory consumption.' % dims[idim])
         for i in range(shape[idim]):
             newslic = list(slic)
             newslic[idim] = i
@@ -140,7 +143,7 @@ def readdata(slic,idim=0):
         curmin,curmax = data.min(), data.max()
         if min is None or min>curmin: min = curmin
         if max is None or max<curmax: max = curmax
-        
+
         return data
 
 data = readdata([slice(None)]*len(dims))
@@ -148,12 +151,12 @@ data = readdata([slice(None)]*len(dims))
 enc = 'utf-8'
 if sys.stdout.isatty(): enc = sys.stdout.encoding
 def printfn(s):
-    print s.encode(enc)
+    print(s.encode(enc))
 
 if n==0:
-    print 'No data available (or all are masked).'
+    print('No data available (or all are masked).')
     sys.exit(0)
-    
+
 def getPercentile(perc):
     index = float(n)*perc
     il = math.floor(index)
