@@ -1700,7 +1700,7 @@ def start(args):
 
     # Redirect expections to Qt-based dialog.
     if not args.debug:
-        xmlplot.errortrap.redirect_stderr('PyNcView','You may be able to continue working. However, we would appreciate it if you report this error. To do so, post a message to <a href="http://sourceforge.net/projects/pyncview/forums/forum/973008">the PyNcView forum</a> with the above error message, and the circumstances under which the error occurred.')
+        xmlplot.errortrap.redirect_stderr('PyNcView','You may be able to continue working. However, we would appreciate it if you report this error. To do so, post a message to <a href="https://github.com/BoldingBruggeman/pyncview/issues">the PyNcView issue tracker</a> with the above error message, and the circumstances under which the error occurred.')
 
     # Start application message loop
     ret = app.exec_()
