@@ -7,7 +7,7 @@
 from __future__ import print_function
 
 # Import standard (i.e., non GOTM-GUI) modules.
-import sys,os,os.path,optparse,math,re,xml.dom.minidom,warnings
+import sys,os,os.path,argparse,math,re,xml.dom.minidom,warnings
 
 # Ignore DeprecationWarnings, which are interesting for developers only.
 warnings.simplefilter('ignore', DeprecationWarning)
@@ -20,8 +20,10 @@ if not hasattr(sys,'frozen'):
     # Auto-discover xmlstore and xmlplot in bbpy directory structure
     rootdir = os.path.dirname(os.path.realpath(__file__))
     path = sys.path[:]
-    sys.path.append(os.path.join(rootdir, '../../xmlstore'))
-    sys.path.append(os.path.join(rootdir, '../../xmlplot'))
+    if os.path.isdir(os.path.join(rootdir, '../../xmlstore')):
+        # Runnning from source (bbpy)
+        sys.path.insert(0, os.path.join(rootdir, '../../xmlstore'))
+        sys.path.insert(0, os.path.join(rootdir, '../../xmlplot'))
 else:
     rootdir = os.path.dirname(unicode(sys.executable, sys.getfilesystemencoding()))
     gotmguiroot = '.'
@@ -51,9 +53,7 @@ except ImportError as e:
     print('Unable to import xmlplot (https://pypi.python.org/pypi/xmlplot) Try "pip install xmlplot". Error: %s' % e)
     sys.exit(1)
    
-def printVersion(option, opt, value, parser):
-    print(r'$LastChangedRevision$'.strip('$'))
-    print(r'$LastChangedDate$'.strip('$'))
+def printVersion():
     for n,v in xmlplot.common.getVersions():
         print('%s: %s' % (n,v))
     sys.exit(0)
@@ -87,7 +87,7 @@ def get_argv():
             if argc.value > 0:
                 # Remove Python executable and commands if present
                 start = argc.value - len(sys.argv)
-                return [argv[i] for i in xrange(start, argc.value)]
+                return [argv[i] for i in range(start, argc.value)]
         except:
             pass
     return [a.decode(sys.getfilesystemencoding()) for a in sys.argv]
@@ -660,7 +660,7 @@ class NcPropertiesDialog(QtWidgets.QDialog):
                     rows.append(items)
             else:
                 labels = ('name','length')
-                rows = map(list,zip(dimnames,map(str,item.getShape())))
+                rows = tuple(map(list,zip(dimnames,map(str,item.getShape()))))
 
             self.listDimensions = createList(self,rows,labels)
             layout.addWidget(self.listDimensions)
@@ -685,7 +685,7 @@ class NcPropertiesDialog(QtWidgets.QDialog):
             lab = QtWidgets.QLabel('Attributes:',self)
             layout.addWidget(lab)
             keys = sorted(props.keys(),key=lambda x: x.lower())
-            self.listProperties = createList(self,[(k,unicode(props[k])) for k in keys],('name','value'))
+            self.listProperties = createList(self,[(k,u''.__class__(props[k])) for k in keys],('name','value'))
             layout.addWidget(self.listProperties)
         else:
             if isinstance(item,xmlplot.common.Variable):
@@ -826,7 +826,7 @@ class NcTreeWidget(QtWidgets.QTreeWidget):
         data = event.mimeData()
         if event.mimeData().hasUrls():
             for url in data.urls():
-                self.fileDropped.emit(unicode(url.toLocalFile()))
+                self.fileDropped.emit(u''.__class__(url.toLocalFile()))
             event.accept()
         else:
             QtWidgets.QTreeWidget.dropEvent(self,event)
@@ -996,8 +996,9 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         filter = 'NetCDF files (*.nc);;All files (*.*)'
         paths,filter = QtWidgets.QFileDialog.getOpenFileNamesAndFilter(self,'',os.path.dirname(self.lastpath),filter)
         if not paths: return
-        paths = map(unicode,paths)
-        if len(paths)==1: paths = paths[0]
+        paths = tuple(map(u''.__class__, paths))
+        if len(paths)==1:
+            paths = paths[0]
         self.load(paths)
 
     def onLinkOpen(self):
@@ -1087,19 +1088,19 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         curstorenames = []
         for i in range(self.tree.topLevelItemCount()):
             curnode = self.tree.topLevelItem(i)
-            curpath = unicode(curnode.data(0,QtCore.Qt.UserRole+1))
+            curpath = u''.__class__(curnode.data(0,QtCore.Qt.UserRole+1))
             if path==curpath:
                 self.tree.clearSelection()
                 curnode.setSelected(True)
                 QtWidgets.QMessageBox.information(self,'Already open','"%s" has already been opened.' % path)
                 return
-            curstorenames.append(unicode(curnode.data(0,QtCore.Qt.UserRole)))
+            curstorenames.append(u''.__class__(curnode.data(0,QtCore.Qt.UserRole)))
 
         # Try to load the NetCDF file.
         try:
             store = xmlplot.data.open(paths)
         except xmlplot.data.NetCDFError as e:
-            QtWidgets.QMessageBox.critical(self,'Error opening file',unicode(e))
+            QtWidgets.QMessageBox.critical(self,'Error opening file',u'%s' % e)
             return
 
         # Determine whether to mask values otuside their valid range.
@@ -1139,7 +1140,8 @@ class VisualizeDialog(QtWidgets.QMainWindow):
             return cmp(','.join(x),','.join(y))
 
         # Add a node for each dimension set and add dependent variables.
-        for dims in sorted(dim2var.keys(),cmp=cmpdim):
+        #for dims in sorted(dim2var.keys(),cmp=cmpdim):
+        for dims in dim2var.keys():
             vars = dim2var[dims]
             nodename = ','.join(dims)
             if nodename=='': nodename = '[none]'
@@ -1388,7 +1390,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
 
             if dim is None:
                 # All dimensions that were set to a single index now need to be iterated over.
-                todoslices = slics.keys()
+                todoslices = list(slics.keys())
             else:
                 # Only the selected dimension needs to be iterated over.
                 todoslices = [dim]
@@ -1494,7 +1496,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
             return
 
         # Get the directory to export PNG images to.
-        targetdir = unicode(QtWidgets.QFileDialog.getExistingDirectory(self,'Select directory for still images'))
+        targetdir = u''.__class__(QtWidgets.QFileDialog.getExistingDirectory(self,'Select directory for still images'))
         if targetdir=='': return
 
         # Show wait cursor
@@ -1654,17 +1656,14 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         self.settings['WindowPosition/Width'].setValue(w)
         self.settings['WindowPosition/Height'].setValue(h)
 
-def start(options, args):
-    if options.nc is not None:
+def start(args):
+    if args.nc is not None:
         if xmlplot.data.netcdf.selectednetcdfmodule is None: xmlplot.data.netcdf.chooseNetCDFModule()
         for xmlplot.data.netcdf.selectednetcdfmodule,(m,v) in enumerate(xmlplot.data.netcdf.netcdfmodules):
-            if m==options.nc: break
+            if m==args.nc: break
         else:
-            print('Forced NetCDF module "%s" is not available. Available modules: %s.' % (options.nc,', '.join([m[0] for m in xmlplot.data.netcdf.netcdfmodules])))
+            print('Forced NetCDF module "%s" is not available. Available modules: %s.' % (args.nc,', '.join([m[0] for m in xmlplot.data.netcdf.netcdfmodules])))
             sys.exit(2)
-
-    # One or more nc files to open may be specified on the command line.
-    inputpaths = list(args)
 
     # Start Qt
     app = QtWidgets.QApplication.instance()
@@ -1679,7 +1678,7 @@ def start(options, args):
     dialog = VisualizeDialog()
 
     # Open files provided on the command line (if any).
-    for path in inputpaths:
+    for path in args.path:
         try:
             dialog.load(path)
         except Exception as e:
@@ -1689,7 +1688,8 @@ def start(options, args):
     dialog.show()
 
     # Redirect expections to Qt-based dialog.
-    xmlplot.errortrap.redirect_stderr('PyNcView','You may be able to continue working. However, we would appreciate it if you report this error. To do so, post a message to <a href="http://sourceforge.net/projects/pyncview/forums/forum/973008">the PyNcView forum</a> with the above error message, and the circumstances under which the error occurred.')
+    if not args.debug:
+        xmlplot.errortrap.redirect_stderr('PyNcView','You may be able to continue working. However, we would appreciate it if you report this error. To do so, post a message to <a href="http://sourceforge.net/projects/pyncview/forums/forum/973008">the PyNcView forum</a> with the above error message, and the circumstances under which the error occurred.')
 
     # Start application message loop
     ret = app.exec_()
@@ -1701,7 +1701,7 @@ def start(options, args):
 
 def main():
     # Parse command line options
-    parser = optparse.OptionParser(description="""This utility may be used to visualize the
+    parser = argparse.ArgumentParser(description="""This utility may be used to visualize the
 contents of a NetCDF file.
 This script uses the GOTM-GUI libraries extensively. To find these libraries,
 either the environment variable GOTMDIR must be set, pointing to a
@@ -1709,22 +1709,24 @@ directory that in turn contains the gui.py directory. Alternatively, the
 environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
 (normally gui.py).
     """)
-    parser.add_option('--version', action='callback', callback=printVersion, help='show program\'s version number and exit')
-    parser.add_option('--nc', type='string', help='NetCDF module to use')
-    parser.add_option('-p','--profile',type='string',help='activates profiling, saving to the supplied path.')
-    parser.set_defaults(nc=None,profile=None)
-    options,args = parser.parse_args(get_argv()[1:])
-
-    if options.profile is not None:
+    parser.add_argument('-v', '--version', action='store_true', help='show program\'s version number and exit')
+    parser.add_argument('--nc', help='NetCDF module to use')
+    parser.add_argument('-p','--profile', help='activates profiling, saving to the supplied path.')
+    parser.add_argument('-d','--debug',action='store_true',help='Send exceptions to stderr')
+    parser.add_argument('path', nargs='*', help='Path or URL to open')
+    args = parser.parse_args(get_argv()[1:])
+    if args.version:
+        printVersion()
+    elif args.profile is not None:
         # We will do profiling
         import cProfile
         import pstats
-        cProfile.run('start(options, args)', options.profile)
-        p = pstats.Stats(options.profile)
+        cProfile.run('start(args)', args.profile)
+        p = pstats.Stats(args.profile)
         p.strip_dirs().sort_stats('cumulative').print_stats()
     else:
         # Just enter the main loop
-        ret = start(options, args)
+        ret = start(args)
 
     # Exit
     sys.exit(ret)

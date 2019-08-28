@@ -40,7 +40,7 @@ def get_argv():
             if argc.value > 0:
                 # Remove Python executable and commands if present
                 start = argc.value - len(sys.argv)
-                return [argv[i] for i in xrange(start, argc.value)]
+                return [argv[i] for i in range(start, argc.value)]
         except:
             pass
     return [a.decode(sys.getfilesystemencoding()) for a in sys.argv]
