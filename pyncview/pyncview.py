@@ -90,7 +90,14 @@ def get_argv():
                 return [argv[i] for i in range(start, argc.value)]
         except:
             pass
-    return [a.decode(sys.getfilesystemencoding()) for a in sys.argv]
+    args = []
+    for arg in sys.argv:
+        try:
+            arg = arg.decode(sys.getfilesystemencoding())
+        except:
+            pass
+        args.append(arg)
+    return args
 
 # -------------------------------------------------------------------
 # Actual code.
