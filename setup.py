@@ -94,7 +94,7 @@ else:
         author='Jorn Bruggeman',
         author_email='jorn@bolding-bruggeman.com',
         license='GPL',
-        install_requires=['xmlplot>=0.9.7'],
+        install_requires=['xmlplot>=0.9.12'],
         classifiers=[
             'Development Status :: 4 - Beta',
             'Intended Audience :: Science/Research',
