@@ -1681,6 +1681,10 @@ def start(args):
     # Set icon for all windows.
     app.setWindowIcon(QtGui.QIcon(os.path.join(rootdir,'pyncview.png')))
 
+    if "win32" in sys.platform:
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('BoldingBruggeman.PyNcView')
+
     # Create main dialog.
     dialog = VisualizeDialog()
 
