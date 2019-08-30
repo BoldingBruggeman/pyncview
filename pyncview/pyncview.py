@@ -1682,8 +1682,12 @@ def start(args):
     app.setWindowIcon(QtGui.QIcon(os.path.join(rootdir,'pyncview.png')))
 
     if "win32" in sys.platform:
+        # Give the program a unique entry in the taskbasr with its own icon (Windows 7 and up only)
         import ctypes
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('BoldingBruggeman.PyNcView')
+        try:
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('BoldingBruggeman.PyNcView')
+        except:
+            pass
 
     # Create main dialog.
     dialog = VisualizeDialog()
