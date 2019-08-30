@@ -1140,15 +1140,8 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         fileroot.setData(0,QtCore.Qt.UserRole+1,path)
         fileroot.setToolTip(0,path)
 
-        # Function for comparing dimension sets
-        def cmpdim(x,y):
-            lc = cmp(len(x),len(y))
-            if lc!=0: return lc
-            return cmp(','.join(x),','.join(y))
-
         # Add a node for each dimension set and add dependent variables.
-        #for dims in sorted(dim2var.keys(),cmp=cmpdim):
-        for dims in dim2var.keys():
+        for dims in sorted(dim2var.keys(), key=lambda x: (len(x), ','.join(x))):
             vars = dim2var[dims]
             nodename = ','.join(dims)
             if nodename=='': nodename = '[none]'
