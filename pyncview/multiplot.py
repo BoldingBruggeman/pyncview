@@ -43,7 +43,14 @@ def get_argv():
                 return [argv[i] for i in range(start, argc.value)]
         except:
             pass
-    return [a.decode(sys.getfilesystemencoding()) for a in sys.argv]
+    args = []
+    for arg in sys.argv:
+        try:
+            arg = arg.decode(sys.getfilesystemencoding())
+        except:
+            pass
+        args.append(arg)
+    return args
 
 def main():
     """Parses command line, creates multiplot.Plotter object, and calls plot.
@@ -65,24 +72,24 @@ def main():
         parser.values.expressions.append((value[0],parser.values.lastsource,value[1]))
 
     parser = optparse.OptionParser(usage='%prog OPTIONS [PROPERTY=VALUE ...]',
-    description="""This script plots one or more variables from different NetCDF
-    files. Series to plot are specified by a combination of one or more -s
-    and -e/-E switches.
+description="""This script plots one or more variables from different NetCDF
+files. Series to plot are specified by a combination of one or more -s
+and -e/-E switches.
 
-    An XML file with figure settings may be provided to configure many aspects of the plot.
-    This file can also contain one or more expressions to plot (replacing or adding to the
-    -e/-E switches). Additionally you can configure plot properties by
-    adding space-separated assignments to the argument list, e.g., Title="my plot title",
-    Width=10, Height=8, /Font/Family="Times New Roman", or /Axes/Axis[y]/Maximum=10.
+An XML file with figure settings may be provided to configure many aspects of the plot.
+This file can also contain one or more expressions to plot (replacing or adding to the
+-e/-E switches). Additionally you can configure plot properties by
+adding space-separated assignments to the argument list, e.g., Title="my plot title",
+Width=10, Height=8, /Font/Family="Times New Roman", or /Axes/Axis[y]/Maximum=10.
 
-    The plot is exported to file if a file name is provided (-o/--output).
-    Otherwise it is shown on screen.
+The plot is exported to file if a file name is provided (-o/--output).
+Otherwise it is shown on screen.
 
-    This script uses the GOTM-GUI libraries extensively. To find these libraries,
-    either the environment variable GOTMDIR must be set, pointing to a
-    directory that in turn contains the gui.py directory. Alternatively, the
-    environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
-    (normally gui.py).""")
+This script uses the GOTM-GUI libraries extensively. To find these libraries,
+either the environment variable GOTMDIR must be set, pointing to a
+directory that in turn contains the gui.py directory. Alternatively, the
+environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
+(normally gui.py).""")
     parser.add_option('--version',  action='callback', help='show program\'s version number and exit',callback=printVersion)
     parser.add_option('-s','--source',         type='string',action='callback',callback=newsource,            metavar='[SOURCENAME=]NCPATH', help='Specifies a NetCDF file from which to plot data. SOURCENAME: name of the data source that may be used in expressions (if omitted the default "source#" is used), NCPATH: path to the NetCDF file.')
     parser.add_option('-e','--expression',     type='string',action='callback',callback=newexpression,        metavar='EXPRESSION', help='Data series to plot. This can be the name of a NetCDF variable, or mathematical expression that can contain variables from NetCDF files, as well as several standard functions (e.g., sum, mean, min, max) and named constants (e.g., pi).')
