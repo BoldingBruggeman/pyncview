@@ -308,7 +308,7 @@ class Plotter(object):
             else:
                 try:
                     series = fig.addVariable(expression,sourcename)
-                except Exception,e:
+                except Exception as e:
                     for name,source in sources.values():
                         if name==sourcename: break
                     raise Exception('%s\nVariables present in NetCDF file: %s.' % (str(e),', '.join(source.getVariableNames())))
@@ -333,7 +333,7 @@ class Plotter(object):
                 if self.verbose:
                     print('"%s": assigning value "%s".' % (fullname,val.toPrettyString()))
                 node.setValue(val)
-            except Exception,e:
+            except Exception as e:
                 raise Exception('"%s": cannot assign value "%s". %s' % (fullname,val,e))
 
         # Unless we are making an animation (in that case the still frame is not set yet), update the plot.
