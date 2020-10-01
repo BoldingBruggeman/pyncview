@@ -1678,7 +1678,7 @@ def start(args):
         # Give the program a unique entry in the taskbasr with its own icon (Windows 7 and up only)
         import ctypes
         try:
-            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('BoldingBruggeman.PyNcView')
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(u'BoldingBruggeman.PyNcView')
         except:
             pass
 

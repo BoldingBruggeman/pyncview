@@ -54,7 +54,7 @@ sys.path.append(gotmguiroot)
 # Import GOTM-GUI modules
 try:
     import xmlplot.common,xmlplot.data,xmlplot.expressions
-except ImportError,e:
+except ImportError as e:
     print('Unable to import GOTM-GUI libraries (%s). Please ensure that environment variable GOTMDIR or GOTMGUIDIR is set.' % e)
     sys.exit(1)
 

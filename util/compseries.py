@@ -32,7 +32,7 @@ def importModules(verbose=True):
     try:
         import xmlstore.util
         import xmlplot.data,xmlplot.plot,xmlplot.gui_qt4
-    except ImportError,e:
+    except ImportError as e:
         sys.stderr.write('Unable to import GOTM-GUI libraries (%s). Please ensure that environment variable GOTMDIR or GOTMGUIDIR is set.\n' % e)
         sys.exit(1)
 
