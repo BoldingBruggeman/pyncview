@@ -20,7 +20,7 @@ if not hasattr(sys,'frozen'):
     # Auto-discover xmlstore and xmlplot in bbpy directory structure
     rootdir = os.path.dirname(os.path.realpath(__file__))
     path = sys.path[:]
-    if os.path.isdir(os.path.join(rootdir, '../../xmlstore')):
+    if os.path.isdir(os.path.join(rootdir, '../../xmlstore/xmlstore')):
         # Runnning from source (bbpy)
         sys.path.insert(0, os.path.join(rootdir, '../../xmlstore'))
         sys.path.insert(0, os.path.join(rootdir, '../../xmlplot'))
