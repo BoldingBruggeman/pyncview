@@ -21,7 +21,7 @@ if not hasattr(sys,'frozen'):
     rootdir = os.path.dirname(os.path.realpath(__file__))
     path = sys.path[:]
     if os.path.isdir(os.path.join(rootdir, '../../xmlstore/xmlstore')):
-        # Runnning from source (bbpy)
+        print('Detected that we are running from BBpy source. Using local xmlstore/xmlplot.')
         sys.path.insert(0, os.path.join(rootdir, '../../xmlstore'))
         sys.path.insert(0, os.path.join(rootdir, '../../xmlplot'))
 else:
@@ -1711,12 +1711,7 @@ def main():
     # Parse command line options
     parser = argparse.ArgumentParser(description="""This utility may be used to visualize the
 contents of a NetCDF file.
-This script uses the GOTM-GUI libraries extensively. To find these libraries,
-either the environment variable GOTMDIR must be set, pointing to a
-directory that in turn contains the gui.py directory. Alternatively, the
-environment variable GOTMGUIDIR may be set, pointing to the GOTM-GUI root
-(normally gui.py).
-    """)
+""")
     parser.add_argument('-v', '--version', action='store_true', help='show program\'s version number and exit')
     parser.add_argument('--nc', help='NetCDF module to use')
     parser.add_argument('-p','--profile', help='activates profiling, saving to the supplied path.')

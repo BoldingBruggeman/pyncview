@@ -26,8 +26,8 @@ if os.path.isfile(versioncache):
     f = open(versioncache,'r')
     oldversion = f.readline()
     f.close()
-    iversion = map(int,version.split('.'))
-    ioldversion = map(int,oldversion.split('.'))
+    iversion = tuple(map(int,version.split('.')))
+    ioldversion = tuple(map(int,oldversion.split('.')))
     assert len(iversion)==3,'New version must consist of three integers separated by periods (.)'
     assert len(ioldversion)==3,'Old version must consist of three integers separated by periods (.)'
     for iold,inew in zip(ioldversion,iversion):
