@@ -182,7 +182,7 @@ def importModules(verbose=True):
     # (should be done before any modules that use MatPlotLib are loaded)
     import matplotlib
     #matplotlib.rcParams['numerix'] = 'numpy'
-    matplotlib.use('Qt4Agg')
+    matplotlib.use('Qt5Agg')
 
     # Add the GOTM-GUI directory to the search path and import the common
     # GOTM-GUI module (needed for command line parsing).
