@@ -1410,7 +1410,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
                             if curmin[i] is not None and (vmin[i] is None or vmin[i]>curmin[i]): vmin[i] = curmin[i]
                             if curmax[i] is not None and (vmax[i] is None or vmax[i]<curmax[i]): vmax[i] = curmax[i]
                         cumprog += (1./length)*progweight
-                        progdialog.setValue(100*cumprog)
+                        progdialog.setValue(int(round(100*cumprog)))
                     return vmin,vmax
                 else:
                     # No iteration needed: just obtain the data using the current slice, and
