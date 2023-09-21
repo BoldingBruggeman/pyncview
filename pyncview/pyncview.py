@@ -427,7 +427,7 @@ class AnimationController(QtWidgets.QWidget):
 
     def onIntervalChanged(self,value):
         self.toolbar.timer.setInterval(int(round(1000./value)))
-        
+
     def onFormatChanged(self):
         self.callback(self)
         self.editFormat.setEnabled(self.checkboxFormat.isChecked())
