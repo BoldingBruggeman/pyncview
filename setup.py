@@ -88,7 +88,7 @@ else:
     from setuptools import setup
 
     setup(name='pyncview',
-        version='0.99.36',
+        version='0.99.37',
         description='NetCDF viewer written in Python',
         url='http://github.com/BoldingBruggeman/pyncview',
         author='Jorn Bruggeman',

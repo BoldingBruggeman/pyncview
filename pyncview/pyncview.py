@@ -443,9 +443,13 @@ class SliceWidget(QtWidgets.QWidget):
     stopAnimation = QtCore.Signal()
     onRecord = QtCore.Signal(object)
     sliceChanged = QtCore.Signal(bool)
+    makeSymmetric = QtCore.Signal()
+    changeColormap = QtCore.Signal(str)
 
     def __init__(self,parent=None,variable=None,figure=None,defaultslices=None,dimnames=None,animatecallback=None):
         super(SliceWidget,self).__init__(parent)
+
+        self.figure = figure
 
         assert variable is not None,'Variable must be specified.'
 
@@ -511,7 +515,20 @@ class SliceWidget(QtWidgets.QWidget):
         layout.addWidget(self.bnChangeAxes,2+len(dims),0,1,2)
         #layout.addWidget(self.bnAnimate,   3+len(dims),0,1,2)
 
-        layout.setRowStretch(4+len(dims),1)
+        # Add button for making the colorbar symmetric
+        self.bnSymmetric = QtWidgets.QPushButton('Make colorbar symmetric about 0',self)
+        self.bnSymmetric.clicked.connect(self.onColorbarSymmetric)
+        layout.addWidget(self.bnSymmetric,3+len(dims),0,1,2)
+
+        # Add button with menu for choosing a colormap
+        self.bnColormap = QtWidgets.QPushButton('Choose colormap ...',self)
+        self.menuColormap = QtWidgets.QMenu(self)
+        self.bnColormap.setMenu(self.menuColormap)
+        layout.addWidget(self.bnColormap,4+len(dims),0,1,2)
+        self.colormapActions = {}
+        self.updateColormapMenu()
+
+        layout.setRowStretch(6+len(dims),1)
 
         self.setLayout(layout)
 
@@ -522,8 +539,6 @@ class SliceWidget(QtWidgets.QWidget):
         self.onCheckChanged()
 
         self.setWindowTitle('Specify slice')
-
-        self.figure = figure
 
     def closeEvent(self,event):
         # Make sure that the slice widget behaves as if no slices are specified, while
@@ -538,6 +553,13 @@ class SliceWidget(QtWidgets.QWidget):
             self.dim = dim
         def event(self):
             self.slicewidget.onAxesBounds(self.dim)
+
+    class ChangeColormapAction:
+        def __init__(self,slicewidget,colormap):
+            self.slicewidget = slicewidget
+            self.colormap = colormap
+        def event(self):
+            self.slicewidget.chooseColormap(self.colormap)
 
     def getRange(self,dim):
         for c in self.dimcontrols:
@@ -574,6 +596,15 @@ class SliceWidget(QtWidgets.QWidget):
 
     def onAxesBounds(self,dim=None):
         self.setAxesBounds.emit(dim)
+
+    def onColorbarSymmetric(self):
+        """Make the colorbar symmetric and choose a diverging colormap."""
+        self.makeSymmetric.emit()
+        self.chooseColormap('RdBu_r')
+
+    def chooseColormap(self, colormap):
+        self.changeColormap.emit(colormap)
+        self.updateColormapMenu()
 
     def onCheckChanged(self,state=None):
         sliceddims = []
@@ -613,6 +644,16 @@ class SliceWidget(QtWidgets.QWidget):
             if checkbox.isChecked():
                 slics[dim] = int(spin.value())
         return slics
+
+    def updateColormapMenu(self):
+        """Add new entries (actions) to the colormap menu."""
+        for colormap, description in self.figure.colormapQuickList.items():
+            if colormap not in self.colormapActions:
+                action = SliceWidget.ChangeColormapAction(self, colormap)
+                self.menuColormap.addAction(colormap + ": " + description, action.event)
+                # Save action-object for colormap-event, otherwise
+                # the object is lost and the event cannot be triggered
+                self.colormapActions[colormap] = action
 
 class NcPropertiesDialog(QtWidgets.QDialog):
     def __init__(self,item,parent,flags=QtCore.Qt.Dialog):
@@ -859,6 +900,14 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         self.figurepanel.setMinimumSize(500,350)
         self.figurepanel.figure.autosqueeze = False
         self.store = self.figurepanel.figure.source
+
+        # Create a collection of often used colormaps (will be extended as the user chooses other colormaps)
+        self.figurepanel.figure.colormapQuickList = {
+            'jet': 'rainbow colormap (PyNcView default)',
+            'viridis': 'sequential colormap (matplotlib default)',
+            'RdBu_r': 'diverging colormap',
+            'binary': 'grayscale colormap',
+        }
 
         self.labelMissing = QtWidgets.QLabel('',central)
         self.labelMissing.setWordWrap(True)
@@ -1259,6 +1308,9 @@ class VisualizeDialog(QtWidgets.QMainWindow):
             ndim = len(varshape) - nsliced
         else:
             ndim = 1
+        # Make buttons regarding colorbar visible if and only if there is a colorbar
+        self.slicetab.bnSymmetric.setVisible(ndim == 2)
+        self.slicetab.bnColormap.setVisible(ndim == 2)
         if ndim not in (1,2):
             if ndim>2:
                 # More than 2 dimensions
@@ -1471,6 +1523,23 @@ class VisualizeDialog(QtWidgets.QMainWindow):
             # Restore original cursor
             QtWidgets.QApplication.restoreOverrideCursor()
 
+    def makeColorbarSymmetric(self):
+        for axisnode in self.figurepanel.figure['Axes'].children:
+            if axisnode.getSecondaryId() == 'colorbar':
+                vamin = axisnode['Minimum'].getValue(usedefault=True)
+                vamax = axisnode['Maximum'].getValue(usedefault=True)
+                absmax = max(abs(vamax), abs(vamin))
+                axisnode['Minimum'].setValue(-absmax)
+                axisnode['Maximum'].setValue(absmax)
+
+    def changeColormap(self, colormap):
+        """Set colormap of figure to the given name and save previously used colormap."""
+        figure = self.figurepanel.figure
+        old_colormap = figure['ColorMap'].getValue(usedefault=True)
+        figure['ColorMap'].setValue(colormap)
+        if old_colormap not in figure.colormapQuickList:
+            figure.colormapQuickList[old_colormap] = 'recently used'
+
     def onRecordAnimation(self,dim):
         # Get the string specifying the currently selected variable (without slices applied!)
         varname = self.getSelectedVariable()
@@ -1576,6 +1645,8 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         if self.slicetab is not None: self.slicetab.close()
         self.slicetab = SliceWidget(None,var,figure=self.figurepanel.figure,defaultslices=self.defaultslices,dimnames=self.store.getVariableLongNames(),animatecallback=self.onAnimation)
         self.slicetab.sliceChanged.connect(self.onSliceChanged)
+        self.slicetab.makeSymmetric.connect(self.makeColorbarSymmetric)
+        self.slicetab.changeColormap.connect(self.changeColormap)
         self.slicetab.setAxesBounds.connect(self.setAxesBounds)
         self.slicetab.onRecord.connect(self.onRecordAnimation)
         self.slicetab.startAnimation.connect(self.figurepanel.startAnimation)
