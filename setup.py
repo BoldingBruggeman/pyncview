@@ -88,13 +88,13 @@ else:
     from setuptools import setup
 
     setup(name='pyncview',
-        version='0.99.34',
+        version='0.99.37',
         description='NetCDF viewer written in Python',
         url='http://github.com/BoldingBruggeman/pyncview',
         author='Jorn Bruggeman',
         author_email='jorn@bolding-bruggeman.com',
         license='GPL',
-        install_requires=['xmlplot>=0.9.25'],
+        install_requires=['xmlplot>=0.9.27'],
         classifiers=[
             'Development Status :: 4 - Beta',
             'Intended Audience :: Science/Research',

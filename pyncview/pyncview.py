@@ -426,7 +426,7 @@ class AnimationController(QtWidgets.QWidget):
         self.callback(self)
 
     def onIntervalChanged(self,value):
-        self.toolbar.timer.setInterval(1000./value)
+        self.toolbar.timer.setInterval(int(round(1000./value)))
 
     def onFormatChanged(self):
         self.callback(self)
