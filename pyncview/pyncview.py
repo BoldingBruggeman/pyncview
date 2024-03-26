@@ -40,6 +40,7 @@ except ImportError as e:
 import matplotlib
 #matplotlib.rcParams['backend.qt4'] = mpl_qt4_backend
 matplotlib.use('agg')
+matplotlib.rcParams.update({"axes.unicode_minus": False})
 
 # Override basemap data directory if running from binary distribution.
 if hasattr(sys,'frozen'):
