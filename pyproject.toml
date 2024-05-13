@@ -30,3 +30,6 @@ multiplot = "pyncview.multiplot:main"
 
 [project.gui-scripts]
 pyncview = "pyncview.pyncview:main"
+
+[tool.hatch.build.targets.sdist]
+only-include = ["pyncview"]
