@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "PyNcView"
+version = "0.99.37"
+dependencies = [
+  "xmlplot>=0.9.28",
+]
+authors = [
+  {name = "Jorn Bruggeman", email = "jorn@bolding-bruggeman.com"}
+]
+license = {file = "LICENSE"}
+description = "NetCDF viewer written in Python"
+requires-python = ">=3.8"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+  "Operating System :: OS Independent",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Development Status :: 5 - Production/Stable"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/BoldingBruggeman/pyncview"
+
+[project.scripts]
+multiplot = "pyncview.multiplot:main"
+
+[project.gui-scripts]
+pyncview = "pyncview.pyncview:main"
