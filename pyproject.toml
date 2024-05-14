@@ -3,8 +3,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "PyNcView"
-version = "0.99.37"
+name = "pyncview"
+version = "0.99.38"
 dependencies = [
   "xmlplot>=0.9.28",
 ]
