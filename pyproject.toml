@@ -5,13 +5,13 @@ build-backend = "hatchling.build"
 [project]
 name = "pyncview"
 version = "0.99.38"
+readme = "README.md"
 dependencies = [
   "xmlplot>=0.9.28",
 ]
 authors = [
   {name = "Jorn Bruggeman", email = "jorn@bolding-bruggeman.com"}
 ]
-license = {file = "LICENSE"}
 description = "NetCDF viewer written in Python"
 requires-python = ">=3.8"
 classifiers = [
