@@ -3,13 +3,20 @@ PyNcView is a cross-platform [NetCDF](https://www.unidata.ucar.edu/software/netc
 It provides an easy-to-use graphical user interface to the creation of animations and publication-quality figures.
 
 ## Installation
-The easiest way to install PyNcView is via [PyPi](https://pypi.org/):
+
+If you use [Anaconda](https://docs.anaconda.com/free/anaconda/) or [Miniconda](https://docs.anaconda.com/free/miniconda/), the easiest way to install PyNcView is:
+
+```bash
+conda install -c conda-forge pyncview
+```
+
+Alternatively, PyNcView can be installed with pip::
 
 ```bash
 pip install pyncview
 ```
 
-To run PyNcView you will need to have PyQt or PySide installed. To install the former, use `pip install pyqt5` or, if using the [Anaconda Python distribution](https://www.anaconda.com/products/distribution), `conda install pyqt`.
+In that case, you will also need to make sure to have PyQt or PySide installed. To install the former, use `pip install pyqt5`.
 
 ## Use
 
