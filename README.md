@@ -15,7 +15,7 @@ install PyNcView is:
 conda install -c conda-forge pyncview
 ```
 
-Alternatively, PyNcView can be installed with pip::
+Alternatively, PyNcView can be installed with pip:
 
 ```bash
 pip install pyncview
