@@ -136,6 +136,8 @@ class SettingsStore(xmlstore.xmlstore.TypedStore):
     def __init__(self,schema=None):
         if schema is None: schema = xmlstore.xmlstore.Schema(SettingsStore.schemaxml,sourceisxml=True)
         xmlstore.xmlstore.TypedStore.__init__(self,schema)
+        defaultstore = xmlstore.xmlstore.TypedStore(self.schema,valueroot=xml.dom.minidom.parseString(SettingsStore.defaultvalues))
+        self.setDefaultStore(defaultstore)
 
     def load(self):
         settingspath = self.getSettingsPath()
@@ -145,8 +147,6 @@ class SettingsStore(xmlstore.xmlstore.TypedStore):
         except Exception as e:
             raise LoadException('Failed to load settings from "%s".\nReason: %s.\nAll settings will be reset.' % (settingspath,e))
             self.setStore(None)
-        defaultstore = xmlstore.xmlstore.TypedStore(self.schema,valueroot=xml.dom.minidom.parseString(SettingsStore.defaultvalues))
-        self.setDefaultStore(defaultstore)
 
         self.removeNonExistent('Paths/MostRecentlyUsed','Path')
 
