@@ -563,7 +563,10 @@ class SliceWidget(QtWidgets.QWidget):
         # Make sure that the toolbar does not extend beyond the desktop
         # Qt 4.3 does not show the toolbar at all if that happens...
         pos = self.windowAnimate.pos()
-        desktopgeometry = QtWidgets.QApplication.desktop().availableGeometry(sender)
+        if hasattr(QtWidgets.QApplication, 'desktop'):
+            desktopgeometry = QtWidgets.QApplication.desktop().availableGeometry(sender)
+        else:
+            desktopgeometry = sender.screen().availableGeometry()
         minx = desktopgeometry.left()
         maxx = desktopgeometry.right()-self.windowAnimate.frameGeometry().width()
         miny = desktopgeometry.top()
@@ -945,7 +948,10 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         if self.settings['WindowPosition/Maximized'].getValue():
             self.showMaximized()
         elif self.settings['WindowPosition/Width'].getValue():
-            desktoprct = QtWidgets.QApplication.desktop().availableGeometry()
+            if hasattr(QtWidgets.QApplication, 'desktop'):
+                desktoprct = QtWidgets.QApplication.desktop().availableGeometry()
+            else:
+                desktoprct = self.screen().availableGeometry()
             w = min(desktoprct.width(), self.settings['WindowPosition/Width'].getValue())
             h = min(desktoprct.height(),self.settings['WindowPosition/Height'].getValue())
             x = max(0,min(desktoprct.width() -w,self.settings['WindowPosition/X'].getValue()))
@@ -1116,7 +1122,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         # Create a name for the data store based on the file name,
         # but make sure it is unique.
         basestorename,ext = os.path.splitext(os.path.basename(path))
-        basestorename = re.sub('\W','_',basestorename)
+        basestorename = re.sub(r'\W','_',basestorename)
         if basestorename[0].isdigit(): basestorename = '_'+basestorename
         storename,i = basestorename,0
         while storename in curstorenames:

@@ -257,7 +257,7 @@ class Plotter(object):
             if createQApp:
                 app = QtWidgets.QApplication([' '])
             else:
-                app = QtWidgets.qApp
+                app = QtWidgets.QApplication.instance()
 
             # Create figure dialog
             dialog = xmlplot.gui_qt4.FigureDialog(None,quitonclose=True)

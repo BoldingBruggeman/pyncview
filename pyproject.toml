@@ -7,7 +7,7 @@ name = "pyncview"
 dynamic = ["version"]
 readme = "README.md"
 dependencies = [
-  "xmlplot>=0.9.28",
+  "xmlplot>=0.9.30",
 ]
 authors = [
   {name = "Jorn Bruggeman", email = "jorn@bolding-bruggeman.com"}
