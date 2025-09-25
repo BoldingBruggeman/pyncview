@@ -359,7 +359,7 @@ class Plotter(object):
 
             # Show dialog and wait for it to close
             dialog.show()
-            if startmessageloop: ret = app.exec_()
+            if startmessageloop: ret = app.exec()
         else:
             if self.animate is None:
                 # Export figure to file

@@ -198,7 +198,7 @@ class SettingsStore(xmlstore.xmlstore.TypedStore):
 
 class AboutDialog(QtWidgets.QDialog):
     def __init__(self,parent=None):
-        QtWidgets.QDialog.__init__(self,parent,QtCore.Qt.MSWindowsFixedSizeDialogHint|QtCore.Qt.CustomizeWindowHint|QtCore.Qt.WindowTitleHint)
+        QtWidgets.QDialog.__init__(self,parent,QtCore.Qt.WindowType.MSWindowsFixedSizeDialogHint|QtCore.Qt.WindowType.CustomizeWindowHint|QtCore.Qt.WindowType.WindowTitleHint)
 
         layout = QtWidgets.QVBoxLayout()
 
@@ -244,8 +244,8 @@ class AboutDialog(QtWidgets.QDialog):
 
         self.bnOk = QtWidgets.QPushButton('OK',self)
         self.bnOk.clicked.connect(self.accept)
-        self.bnOk.setSizePolicy(QtWidgets.QSizePolicy.Fixed,QtWidgets.QSizePolicy.Fixed)
-        layout.addWidget(self.bnOk,0,QtCore.Qt.AlignRight)
+        self.bnOk.setSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed,QtWidgets.QSizePolicy.Policy.Fixed)
+        layout.addWidget(self.bnOk,0,QtCore.Qt.AlignmentFlag.AlignRight)
 
         self.setLayout(layout)
 
@@ -303,7 +303,7 @@ class BuildExpressionDialog(QtWidgets.QDialog):
         self.treeVariables.clear()
         for name, longname in self.variables.items():
             self.treeVariables.addTopLevelItem(QtWidgets.QTreeWidgetItem([name,longname]))
-        self.treeVariables.sortItems(0,QtCore.Qt.AscendingOrder)
+        self.treeVariables.sortItems(0,QtCore.Qt.SortOrder.AscendingOrder)
 
     def itemDoubleClicked(self,item,column):
         self.edit.insert(item.text(0))
@@ -384,7 +384,7 @@ class AnimateToolBar(QtWidgets.QToolBar):
 
 class AnimationController(QtWidgets.QWidget):
     def __init__(self,parent,dim,spin,callback=None):
-        QtWidgets.QWidget.__init__(self,parent,QtCore.Qt.Tool)
+        QtWidgets.QWidget.__init__(self,parent,QtCore.Qt.WindowType.Tool)
 
         self.toolbar = AnimateToolBar(self,dim,spin)
         self.onRecord = self.toolbar.onRecord
@@ -618,7 +618,7 @@ class SliceWidget(QtWidgets.QWidget):
         return slics
 
 class NcPropertiesDialog(QtWidgets.QDialog):
-    def __init__(self,item,parent,flags=QtCore.Qt.Dialog):
+    def __init__(self,item,parent,flags=QtCore.Qt.WindowType.Dialog):
         QtWidgets.QDialog.__init__(self,parent,flags)
         layout = QtWidgets.QVBoxLayout()
 
@@ -626,7 +626,7 @@ class NcPropertiesDialog(QtWidgets.QDialog):
             list = QtWidgets.QTreeWidget(self)
             list.setUniformRowHeights(True)
             list.setSortingEnabled(True)
-            list.sortByColumn(-1,QtCore.Qt.AscendingOrder)
+            list.sortByColumn(-1,QtCore.Qt.SortOrder.AscendingOrder)
             list.addTopLevelItems([QtWidgets.QTreeWidgetItem(items) for items in rows])
             list.setHeaderLabels(headers)
             header = list.header()
@@ -723,7 +723,7 @@ class ReassignDialog(QtWidgets.QDialog):
     """Dialog for reassigning coordinate dimensions of a NetCDF file.
     """
 
-    def __init__(self,store,parent,flags=QtCore.Qt.Dialog):
+    def __init__(self,store,parent,flags=QtCore.Qt.WindowType.Dialog):
         QtWidgets.QDialog.__init__(self,parent,flags)
         layout = QtWidgets.QGridLayout()
         irow = 0
@@ -820,14 +820,14 @@ class NcTreeWidget(QtWidgets.QTreeWidget):
 
     def dragEnterEvent(self,event):
         if event.mimeData().hasUrls():
-            event.setDropAction(QtCore.Qt.CopyAction)
+            event.setDropAction(QtCore.Qt.DropAction.CopyAction)
             event.accept()
         else:
             QtWidgets.QTreeWidget.dragEnterEvent(self,event)
 
     def dragMoveEvent(self,event):
         if event.mimeData().hasUrls():
-            event.setDropAction(QtCore.Qt.CopyAction)
+            event.setDropAction(QtCore.Qt.DropAction.CopyAction)
             event.accept()
         else:
             QtWidgets.QTreeWidget.dragMoveEvent(self,event)
@@ -846,7 +846,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
     """
 
     def __init__(self,parent=None):
-        QtWidgets.QMainWindow.__init__(self,parent,QtCore.Qt.Window | QtCore.Qt.WindowMaximizeButtonHint | QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowMinimizeButtonHint| QtCore.Qt.WindowSystemMenuHint )
+        QtWidgets.QMainWindow.__init__(self,parent,QtCore.Qt.WindowType.Window | QtCore.Qt.WindowType.WindowMaximizeButtonHint | QtCore.Qt.WindowType.WindowCloseButtonHint | QtCore.Qt.WindowType.WindowMinimizeButtonHint| QtCore.Qt.WindowType.WindowSystemMenuHint )
 
         # Load persistent settings
         self.settings = SettingsStore()
@@ -868,7 +868,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         self.labelMissing.setVisible(False)
 
         layout = QtWidgets.QVBoxLayout(central)
-        layout.addWidget(self.labelMissing,alignment=QtCore.Qt.AlignTop)
+        layout.addWidget(self.labelMissing,alignment=QtCore.Qt.AlignmentFlag.AlignTop)
         layout.addWidget(self.figurepanel)
 
         self.setCentralWidget(central)
@@ -879,10 +879,10 @@ class VisualizeDialog(QtWidgets.QMainWindow):
 
         self.tree = NcTreeWidget(browserwidget)
         self.tree.header().hide()
-        self.tree.setSizePolicy(QtWidgets.QSizePolicy.Minimum,QtWidgets.QSizePolicy.Expanding)
+        self.tree.setSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum,QtWidgets.QSizePolicy.Policy.Expanding)
         self.tree.setMinimumWidth(75)
-        self.tree.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.tree.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
+        self.tree.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
 
         self.tree.itemSelectionChanged.connect(self.onSelectionChanged)
         self.tree.fileDropped.connect(self.load)
@@ -909,17 +909,17 @@ class VisualizeDialog(QtWidgets.QMainWindow):
                 self.hidden.emit()
 
         self.dockSlice = SliceDockWidget('Slicing',self)
-        self.dockSlice.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable|QtWidgets.QDockWidget.DockWidgetFloatable|QtWidgets.QDockWidget.DockWidgetClosable)
-        self.dockSlice.setAllowedAreas(QtCore.Qt.LeftDockWidgetArea|QtCore.Qt.RightDockWidgetArea)
-        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.dockSlice)
+        self.dockSlice.setFeatures(QtWidgets.QDockWidget.DockWidgetFeature.DockWidgetMovable|QtWidgets.QDockWidget.DockWidgetFeature.DockWidgetFloatable|QtWidgets.QDockWidget.DockWidgetFeature.DockWidgetClosable)
+        self.dockSlice.setAllowedAreas(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea|QtCore.Qt.DockWidgetArea.RightDockWidgetArea)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.dockSlice)
         self.dockSlice.setVisible(False)
         self.dockSlice.hidden.connect(self.onHideSliceDockWidget)
         self.slicetab = None
-
+    
         self.dockFileBrowser = QtWidgets.QDockWidget('Workspace explorer',self)
-        self.dockFileBrowser.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable|QtWidgets.QDockWidget.DockWidgetFloatable)
-        self.dockFileBrowser.setAllowedAreas(QtCore.Qt.LeftDockWidgetArea|QtCore.Qt.RightDockWidgetArea)
-        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.dockFileBrowser)
+        self.dockFileBrowser.setFeatures(QtWidgets.QDockWidget.DockWidgetFeature.DockWidgetMovable|QtWidgets.QDockWidget.DockWidgetFeature.DockWidgetFloatable)
+        self.dockFileBrowser.setAllowedAreas(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea|QtCore.Qt.DockWidgetArea.RightDockWidgetArea)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self.dockFileBrowser)
         self.dockFileBrowser.setWidget(browserwidget)
 
         self.expressionroot = None
@@ -935,7 +935,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
 
         self.bnopen = QtWidgets.QToolButton(self.browsertoolbar)
         act = QtWidgets.QAction(xmlplot.gui_qt4.getIcon('fileopen.png'),'Open',self.browsertoolbar)
-        self.bnopen.setPopupMode(QtWidgets.QToolButton.MenuButtonPopup)
+        self.bnopen.setPopupMode(QtWidgets.QToolButton.ToolButtonPopupMode.MenuButtonPopup)
         act.triggered.connect(self.onFileOpen)
         self.bnopen.setDefaultAction(act)
         self.bnopen.setMenu(self.menuRecentFile)
@@ -968,10 +968,12 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         """
         bar = self.menuBar()
         self.menuFile = bar.addMenu('File')
-        self.menuFile.addAction(xmlplot.gui_qt4.getIcon('fileopen.png'),'Open...',self.onFileOpen,QtGui.QKeySequence.Open)
+        act = self.menuFile.addAction(xmlplot.gui_qt4.getIcon('fileopen.png'),'Open...',self.onFileOpen)
+        act.setShortcut(QtGui.QKeySequence.StandardKey.Open)
         self.menuFile.addAction('Open Link...',self.onLinkOpen)
         self.menuRecentFile = self.menuFile.addMenu('Open Recent')
-        self.menuFile.addAction(xmlplot.gui_qt4.getIcon('exit.png'),'Exit',self.close,QtGui.QKeySequence.Quit)
+        act = self.menuFile.addAction(xmlplot.gui_qt4.getIcon('exit.png'),'Exit',self.close)
+        act.setShortcut(QtGui.QKeySequence.StandardKey.Quit)
         self.menuFile.addSeparator()
         menuEdit = bar.addMenu('Edit')
         menuEdit.addAction('Options...',self.onEditOptions)
@@ -1007,7 +1009,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         """Called when the user clicks "Open..." in the "File" menu.
         """
         filter = 'NetCDF files (*.nc);;All files (*.*)'
-        paths,filter = QtWidgets.QFileDialog.getOpenFileNamesAndFilter(self,'',os.path.dirname(self.lastpath),filter)
+        paths,filter = QtWidgets.QFileDialog.getOpenFileNames(self,'',os.path.dirname(self.lastpath),filter)
         if not paths: return
         paths = tuple(map(u''.__class__, paths))
         if len(paths)==1:
@@ -1023,12 +1025,12 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         path = 'http://data.nodc.noaa.gov/thredds/dodsC/woa/WOA09/NetCDFdata/temperature_annual_1deg.nc'
         path = 'http://dtvirt5.deltares.nl:8080/thredds/dodsC/opendap/rijkswaterstaat/jarkus/profiles/transect.nc'
         path = 'http://megara.tamu.edu:8080/thredds/dodsC/mch_outputs/ngom_24h/mch_his_ngom_24h_2008.nc'
-        path,ok = QtWidgets.QInputDialog.getText(self,'Open DAP resource','URL:',QtWidgets.QLineEdit.Normal,path)
+        path,ok = QtWidgets.QInputDialog.getText(self,'Open DAP resource','URL:',QtWidgets.QLineEdit.EchoMode.Normal,path)
         if not ok: return
         self.load(path)
 
     def onEditOptions(self):
-        dlg = QtWidgets.QDialog(self,QtCore.Qt.Dialog|QtCore.Qt.CustomizeWindowHint|QtCore.Qt.WindowTitleHint|QtCore.Qt.WindowCloseButtonHint)
+        dlg = QtWidgets.QDialog(self,QtCore.Qt.WindowType.Dialog|QtCore.Qt.WindowType.CustomizeWindowHint|QtCore.Qt.WindowType.WindowTitleHint|QtCore.Qt.WindowType.WindowCloseButtonHint)
         dlg.setWindowTitle('Options')
 
         layout = QtWidgets.QVBoxLayout()
@@ -1049,7 +1051,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         bnOk.clicked.connect(dlg.accept)
         bnCancel.clicked.connect(dlg.reject)
 
-        if dlg.exec_()!=QtWidgets.QDialog.Accepted: return
+        if dlg.exec()!=QtWidgets.QDialog.DialogCode.Accepted: return
 
         mask = cb.isChecked()
         self.settings['MaskValuesOutsideRange'].setValue(mask)
@@ -1063,7 +1065,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         """Called when the user clicks "About..." in the "Help" menu.
         """
         dlg = AboutDialog(self)
-        dlg.exec_()
+        dlg.exec()
 
     def onShowSliceWindow(self):
         """Called when the user check or unchecks "Slice window" in the "View" menu.
@@ -1078,7 +1080,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         of a NetCDF file (root) node.
         """
         dialog = ReassignDialog(store,parent=self)
-        if dialog.exec_()==QtWidgets.QDialog.Accepted:
+        if dialog.exec()==QtWidgets.QDialog.DialogCode.Accepted:
             self.figurepanel.figure.update()
 
     def onFileProperties(self,store):
@@ -1086,7 +1088,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         of a NetCDF file (root) node.
         """
         dialog = NcFilePropertiesDialog(store,parent=self)
-        dialog.exec_()
+        dialog.exec()
 
     def load(self,paths):
         """Loads a new NetCDF file.
@@ -1101,13 +1103,13 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         curstorenames = []
         for i in range(self.tree.topLevelItemCount()):
             curnode = self.tree.topLevelItem(i)
-            curpath = u''.__class__(curnode.data(0,QtCore.Qt.UserRole+1))
+            curpath = u''.__class__(curnode.data(0,QtCore.Qt.ItemDataRole.UserRole+1))
             if path==curpath:
                 self.tree.clearSelection()
                 curnode.setSelected(True)
                 QtWidgets.QMessageBox.information(self,'Already open','"%s" has already been opened.' % path)
                 return
-            curstorenames.append(u''.__class__(curnode.data(0,QtCore.Qt.UserRole)))
+            curstorenames.append(u''.__class__(curnode.data(0,QtCore.Qt.ItemDataRole.UserRole)))
 
         # Try to load the NetCDF file.
         try:
@@ -1141,9 +1143,9 @@ class VisualizeDialog(QtWidgets.QMainWindow):
             dim2var.setdefault(tuple(variable.getDimensions()),[]).append(variable)
 
         # Create root node for this file
-        fileroot = QtWidgets.QTreeWidgetItem([storename],QtWidgets.QTreeWidgetItem.Type)
-        fileroot.setData(0,QtCore.Qt.UserRole,storename)
-        fileroot.setData(0,QtCore.Qt.UserRole+1,path)
+        fileroot = QtWidgets.QTreeWidgetItem([storename],QtWidgets.QTreeWidgetItem.ItemType.Type)
+        fileroot.setData(0,QtCore.Qt.ItemDataRole.UserRole,storename)
+        fileroot.setData(0,QtCore.Qt.ItemDataRole.UserRole+1,path)
         fileroot.setToolTip(0,path)
 
         # Add a node for each dimension set and add dependent variables.
@@ -1151,12 +1153,12 @@ class VisualizeDialog(QtWidgets.QMainWindow):
             vars = dim2var[dims]
             nodename = ','.join(dims)
             if nodename=='': nodename = '[none]'
-            curdimroot = QtWidgets.QTreeWidgetItem([nodename],QtWidgets.QTreeWidgetItem.Type)
+            curdimroot = QtWidgets.QTreeWidgetItem([nodename],QtWidgets.QTreeWidgetItem.ItemType.Type)
             items = []
             for variable in sorted(vars, key=lambda x: x.getLongName().lower()):
                 varname, longname = variable.getName(),variable.getLongName()
-                item = QtWidgets.QTreeWidgetItem([longname],QtWidgets.QTreeWidgetItem.Type)
-                item.setData(0,QtCore.Qt.UserRole,'%s[\'%s\']' % (storename,varname))
+                item = QtWidgets.QTreeWidgetItem([longname],QtWidgets.QTreeWidgetItem.ItemType.Type)
+                item.setData(0,QtCore.Qt.ItemDataRole.UserRole,'%s[\'%s\']' % (storename,varname))
                 curdimroot.addChild(item)
             if curdimroot.childCount()>0: fileroot.addChild(curdimroot)
 
@@ -1183,7 +1185,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         if selected[0].parent() is None: return None
 
         # Get name and path of variable about to be shown.
-        return selected[0].data(0,QtCore.Qt.UserRole)
+        return selected[0].data(0,QtCore.Qt.ItemDataRole.UserRole)
 
     def onSliceChanged(self,dimschanged):
         """Called when the slice specification changes in the slice widget.
@@ -1197,7 +1199,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         index = self.tree.indexAt(point)
 
         # Get the internal expression (as opposed to the pretty name)
-        varname = index.data(QtCore.Qt.UserRole)
+        varname = index.data(QtCore.Qt.ItemDataRole.UserRole)
 
         # If there is not internal expression, it is not variable or file (but a container only).
         # Return without showing the context menu.
@@ -1215,13 +1217,13 @@ class VisualizeDialog(QtWidgets.QMainWindow):
             actReassign = menu.addAction('Reassign coordinates...')
             actClose    = menu.addAction('Close')
         if menu.isEmpty(): return
-        actChosen = menu.exec_(self.tree.mapToGlobal(point))
+        actChosen = menu.exec(self.tree.mapToGlobal(point))
         if actChosen is None: return
 
         # Interpret and execute the action chosen in the menu.
         if actChosen is actProperties:
-            dialog = NcPropertiesDialog(item,parent=self,flags=QtCore.Qt.CustomizeWindowHint|QtCore.Qt.Dialog|QtCore.Qt.WindowTitleHint|QtCore.Qt.WindowCloseButtonHint)
-            dialog.exec_()
+            dialog = NcPropertiesDialog(item,parent=self,flags=QtCore.Qt.WindowType.CustomizeWindowHint|QtCore.Qt.WindowType.Dialog|QtCore.Qt.WindowType.WindowTitleHint|QtCore.Qt.WindowType.WindowCloseButtonHint)
+            dialog.exec()
         elif actChosen is actReassign:
             self.onReassignCoordinates(item)
         elif actChosen is actClose:
@@ -1300,7 +1302,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         #self.defaultslices = slics
 
         # Show wait cursor
-        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
         # Disable figure updating while we make changes.
         oldupdating = self.figurepanel.figure.setUpdating(False)
@@ -1367,10 +1369,10 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         if varname is None: return
 
         # Show wait cursor and progress dialog
-        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
-        progdialog = QtWidgets.QProgressDialog('Examining data range...',None,0,100,self,QtCore.Qt.Dialog|QtCore.Qt.WindowTitleHint)
-        progdialog.setWindowModality(QtCore.Qt.WindowModal)
+        progdialog = QtWidgets.QProgressDialog('Examining data range...',None,0,100,self,QtCore.Qt.WindowType.Dialog|QtCore.Qt.WindowType.WindowTitleHint)
+        progdialog.setWindowModality(QtCore.Qt.WindowType.WindowModal)
         progdialog.setWindowTitle('Please wait')
 
         try:
@@ -1506,7 +1508,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         if targetdir=='': return
 
         # Show wait cursor
-        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
         try:
             # Get the slice selection, and the range across we will vary for the animation.
@@ -1521,8 +1523,8 @@ class VisualizeDialog(QtWidgets.QMainWindow):
             fig['Height'].setValue(sourcefigure['Height'].getValue(usedefault=True))
 
             # Create progress dialog
-            dlgProgress = QtWidgets.QProgressDialog('Please wait while stills are generated.','Cancel',imin,imax,self,QtCore.Qt.Dialog|QtCore.Qt.WindowTitleHint)
-            dlgProgress.setWindowModality(QtCore.Qt.WindowModal)
+            dlgProgress = QtWidgets.QProgressDialog('Please wait while stills are generated.','Cancel',imin,imax,self,QtCore.Qt.WindowType.Dialog|QtCore.Qt.WindowType.WindowTitleHint)
+            dlgProgress.setWindowModality(QtCore.Qt.WindowType.WindowModal)
             dlgProgress.setWindowTitle('Please wait...')
 
             try:
@@ -1618,12 +1620,12 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         dlg = BuildExpressionDialog(self,variables=self.store.getVariableLongNames(alllevels=True))
 
         if item is not None:
-            expression = item.data(0,QtCore.Qt.UserRole)
+            expression = item.data(0,QtCore.Qt.ItemDataRole.UserRole)
             dlg.edit.setText(expression)
 
         valid = False
         while not valid:
-            if dlg.exec_()!=QtWidgets.QDialog.Accepted: return
+            if dlg.exec()!=QtWidgets.QDialog.DialogCode.Accepted: return
             expression = str(dlg.edit.text())
             try:
                 var = self.store[expression]
@@ -1634,12 +1636,12 @@ class VisualizeDialog(QtWidgets.QMainWindow):
 
         if item is None:
             if self.expressionroot is None:
-                self.expressionroot = QtWidgets.QTreeWidgetItem(['expressions'],QtWidgets.QTreeWidgetItem.Type)
+                self.expressionroot = QtWidgets.QTreeWidgetItem(['expressions'],QtWidgets.QTreeWidgetItem.ItemType.Type)
                 self.tree.addTopLevelItem(self.expressionroot)
-            item = QtWidgets.QTreeWidgetItem(QtWidgets.QTreeWidgetItem.Type)
+            item = QtWidgets.QTreeWidgetItem(QtWidgets.QTreeWidgetItem.ItemType.Type)
             self.expressionroot.addChild(item)
-        item.setData(0,QtCore.Qt.DisplayRole,expression)
-        item.setData(0,QtCore.Qt.UserRole,expression)
+        item.setData(0,QtCore.Qt.ItemDataRole.DisplayRole,expression)
+        item.setData(0,QtCore.Qt.ItemDataRole.UserRole,expression)
 
         if not item.isSelected():
             self.allowupdates = False
@@ -1681,7 +1683,7 @@ def start(args):
     app.setWindowIcon(QtGui.QIcon(os.path.join(rootdir,'pyncview.png')))
 
     if "win32" in sys.platform:
-        # Give the program a unique entry in the taskbasr with its own icon (Windows 7 and up only)
+        # Give the program a unique entry in the taskbar with its own icon (Windows 7 and up only)
         import ctypes
         try:
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(u'BoldingBruggeman.PyNcView')
@@ -1706,7 +1708,7 @@ def start(args):
         xmlplot.errortrap.redirect_stderr('PyNcView','You may be able to continue working. However, we would appreciate it if you report this error. To do so, post a message to <a href="https://github.com/BoldingBruggeman/pyncview/issues">the PyNcView issue tracker</a> with the above error message, and the circumstances under which the error occurred.')
 
     # Start application message loop
-    ret = app.exec_()
+    ret = app.exec()
 
     # Save persistent program settings.    
     dialog.settings.save()
