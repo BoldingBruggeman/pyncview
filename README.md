@@ -21,8 +21,7 @@ Alternatively, PyNcView can be installed with pip:
 pip install pyncview
 ```
 
-In that case, you will also need to make sure to have PyQt or PySide installed.
-To install the former, use `pip install pyqt5`.
+In that case, you will also need to have PySide6, PyQt6, PyQt5, or PySide2 installed. PySide6 can be installed with `pip install pyside6`.
 
 ## Use
 
