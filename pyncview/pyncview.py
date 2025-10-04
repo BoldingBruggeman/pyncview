@@ -1372,7 +1372,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
         progdialog = QtWidgets.QProgressDialog('Examining data range...',None,0,100,self,QtCore.Qt.WindowType.Dialog|QtCore.Qt.WindowType.WindowTitleHint)
-        progdialog.setWindowModality(QtCore.Qt.WindowType.WindowModal)
+        progdialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
         progdialog.setWindowTitle('Please wait')
 
         try:
@@ -1524,7 +1524,7 @@ class VisualizeDialog(QtWidgets.QMainWindow):
 
             # Create progress dialog
             dlgProgress = QtWidgets.QProgressDialog('Please wait while stills are generated.','Cancel',imin,imax,self,QtCore.Qt.WindowType.Dialog|QtCore.Qt.WindowType.WindowTitleHint)
-            dlgProgress.setWindowModality(QtCore.Qt.WindowType.WindowModal)
+            dlgProgress.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
             dlgProgress.setWindowTitle('Please wait...')
 
             try:
